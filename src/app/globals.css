@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-cream text-ink antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-extrabold tracking-tight;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-5 py-3 text-base font-bold transition active:scale-[.98] disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply btn bg-axo-500 text-white hover:bg-axo-600;
+  }
+  .btn-soft {
+    @apply btn bg-axo-100 text-axo-600 hover:bg-axo-200;
+  }
+  .btn-outline {
+    @apply btn border-2 border-axo-200 bg-white text-ink hover:bg-axo-50;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-sm {
+    @apply min-h-10 rounded-xl px-4 py-2 text-sm;
+  }
+  .card {
+    @apply rounded-3xl border border-axo-100 bg-white p-5;
+  }
+  .input {
+    @apply min-h-12 w-full rounded-2xl border-2 border-axo-100 bg-white px-4 py-3 text-base outline-none transition placeholder:text-ink/40 focus:border-axo-400;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-bold;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full bg-axo-100 px-3 py-1 text-sm font-bold text-axo-600;
+  }
+  .muted {
+    @apply text-sm text-ink/60;
+  }
+}
+
+.leaflet-container {
+  font-family: inherit;
+  border-radius: 1.5rem;
+}
