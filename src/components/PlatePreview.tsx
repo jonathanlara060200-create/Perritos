@@ -5,8 +5,9 @@ type Props = { name: string; tagCode: string; url: string; color?: string }
 /** Representación visual de la placa (frente y reverso). La silueta real se diseña a partir de la foto. */
 export function PlatePreview({ name, tagCode, url, color = '#F4B8C8' }: Props) {
   const qr = QRCode.create(url, { errorCorrectionLevel: 'M' })
-  const size = qr.modules.size
-  const data = qr.modules.data
+  const modules = qr.modules as unknown as { size: number; data: ArrayLike<number> }
+  const size = modules.size
+  const data = modules.data
   const cell = 64 / size
   const rects: React.ReactNode[] = []
   for (let r = 0; r < size; r++) {
