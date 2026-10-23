@@ -1,4 +1,7 @@
 import Link from 'next/link'
+import { payOrder } from '@/app/actions/orders'
+import { SubmitButton } from '@/components/SubmitButton'
+import { mpEnabled } from '@/lib/mercadopago'
 import { notFound } from 'next/navigation'
 import { Flash } from '@/components/Flash'
 import { requireUser } from '@/lib/auth'
@@ -96,9 +99,26 @@ export default async function OrderPage({
       </div>
       <p className="muted">Creado el {formatDate(order.created_at, true)}</p>
 
+      {sp.mp === 'ok' && order.status === 'pending_payment' && (
+        <div className="card bg-mint text-sm font-bold text-emerald-900">
+          ¡Gracias! Estamos confirmando tu pago; en unos segundos esta página se actualiza. Recárgala si no cambia.
+        </div>
+      )}
+      {sp.mp === 'pending' && order.status === 'pending_payment' && (
+        <div className="card bg-butter/50 text-sm font-bold">Tu pago quedó pendiente. En cuanto se acredite, tu pedido avanza solo.</div>
+      )}
+
       {order.status === 'pending_payment' && (
         <div className="card border-2 border-butter bg-butter/40 space-y-2">
           <p className="font-extrabold">💳 Falta tu pago</p>
+          {mpEnabled() && (
+            <form action={payOrder.bind(null, order.id)} className="space-y-1">
+              <SubmitButton className="btn-primary w-full" pendingText="Abriendo el pago…">
+                Pagar en línea · {formatMoney(order.total, order.currency)}
+              </SubmitButton>
+              <p className="muted text-center">Tarjeta, OXXO o transferencia (SPEI) con Mercado Pago.</p>
+            </form>
+          )}
           <p className="whitespace-pre-line text-sm">{cfg.payment_instructions}</p>
           <p className="text-sm">Monto: <b>{formatMoney(order.total, order.currency)}</b> · Referencia: <b>#{order.order_number}</b></p>
           {cfg.support_whatsapp && (

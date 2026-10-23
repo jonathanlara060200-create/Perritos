@@ -1,10 +1,12 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { requireUser } from '@/lib/auth'
 import { go } from '@/lib/flash'
 import { createClient } from '@/lib/supabase/server'
-import { str } from '@/lib/utils'
+import { createPreference, mpEnabled } from '@/lib/mercadopago'
+import { siteUrl, str } from '@/lib/utils'
 
 const schema = z.object({
   pet_id: z.string().uuid('Elige una mascota.'),
@@ -48,4 +50,36 @@ export async function createOrder(fd: FormData) {
   if (error || !orderId) go(back, 'error', 'No pudimos crear tu pedido. Revisa los datos e intenta de nuevo.')
 
   go(`/orders/${orderId}`, 'ok', '¡Pedido creado! Sigue las instrucciones de pago para que lo mandemos a producción.')
+}
+
+/** Crea el cobro en Mercado Pago y manda al cliente a su página de pago. */
+export async function payOrder(orderId: string) {
+  const user = await requireUser()
+  const back = `/orders/${orderId}`
+  if (!mpEnabled()) go(back, 'error', 'El pago en línea todavía no está disponible. Usa las instrucciones de transferencia.')
+
+  const supabase = await createClient()
+  const { data: order } = await supabase
+    .from('orders')
+    .select('id, order_number, status, total, currency')
+    .eq('id', orderId)
+    .maybeSingle()
+  if (!order) go('/orders', 'error', 'No encontramos ese pedido.')
+  if (order.status !== 'pending_payment') go(back, 'error', 'Este pedido ya no está pendiente de pago.')
+
+  let link: string
+  try {
+    link = await createPreference({
+      orderId: order.id,
+      orderNumber: order.order_number,
+      title: `AJolote ID · pedido #${order.order_number}`,
+      amount: Number(order.total),
+      currency: order.currency,
+      payerEmail: user.email,
+      siteUrl: siteUrl(),
+    })
+  } catch {
+    go(back, 'error', 'No pudimos abrir el pago en línea. Intenta de nuevo o usa la transferencia.')
+  }
+  redirect(link)
 }
