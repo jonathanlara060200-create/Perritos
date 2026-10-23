@@ -4,7 +4,7 @@ import { SubmitButton } from '@/components/SubmitButton'
 import { mpEnabled } from '@/lib/mercadopago'
 import { notFound } from 'next/navigation'
 import { Flash } from '@/components/Flash'
-import { requireUser } from '@/lib/auth'
+import { getProfile, requireUser } from '@/lib/auth'
 import { ORDER_STATUS } from '@/lib/labels'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate, formatMoney } from '@/lib/utils'
@@ -47,6 +47,7 @@ export default async function OrderPage({
   const { id } = await params
   const sp = await searchParams
   await requireUser()
+  const isAdmin = (await getProfile())?.role === 'admin'
   const supabase = await createClient()
 
   const { data: orderRow, error: orderErr } = await supabase.from('orders').select('*').eq('id', id).maybeSingle()
@@ -111,6 +112,11 @@ export default async function OrderPage({
       {order.status === 'pending_payment' && (
         <div className="card border-2 border-butter bg-butter/40 space-y-2">
           <p className="font-extrabold">💳 Falta tu pago</p>
+          {!mpEnabled() && isAdmin && (
+            <p className="rounded-xl bg-red-50 p-2 text-xs font-bold text-red-700">
+              Solo lo ves tú (admin): el pago en línea está apagado porque la app no encuentra MP_ACCESS_TOKEN en Cloudflare.
+            </p>
+          )}
           {mpEnabled() && (
             <form action={payOrder.bind(null, order.id)} className="space-y-1">
               <SubmitButton className="btn-primary w-full" pendingText="Abriendo el pago…">
