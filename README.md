@@ -1,4 +1,4 @@
-# 🦎 AJolote ID · Ajolote de Bolsillo.
+# 🦎 AJolote ID · Ajolote de Bolsillo
 
 La identidad física y digital de tu mascota: una placa impresa en 3D con su silueta, NFC y QR que abre un perfil público (sin cuenta ni app) para ayudarla a volver a casa.
 
