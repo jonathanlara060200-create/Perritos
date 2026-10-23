@@ -45,17 +45,26 @@ export function timeAgo(iso: string): string {
 
 export function formatDate(iso?: string | null, withTime = false) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleString('es-MX', {
-    timeZone: TZ,
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}),
-  })
+  try {
+    return new Date(iso).toLocaleString('es-MX', {
+      timeZone: TZ,
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}),
+    })
+  } catch {
+    return String(iso).slice(0, 10)
+  }
 }
 
 export function formatMoney(n: number | string | null | undefined, currency = 'MXN') {
-  return new Intl.NumberFormat('es-MX', { style: 'currency', currency, maximumFractionDigits: 0 }).format(Number(n ?? 0))
+  const v = Number(n ?? 0)
+  try {
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: currency || 'MXN', maximumFractionDigits: 0 }).format(v)
+  } catch {
+    return `$${v}`
+  }
 }
 
 function digits(s: string) {

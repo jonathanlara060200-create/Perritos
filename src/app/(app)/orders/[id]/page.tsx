@@ -92,7 +92,7 @@ export default async function OrderPage({
       <Flash sp={sp} />
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-3xl">Pedido #{order.order_number}</h1>
-        <span className={cancelled ? 'chip bg-red-100 text-red-700' : 'chip'}>{ORDER_STATUS[order.status]}</span>
+        <span className={cancelled ? 'chip bg-red-100 text-red-700' : 'chip'}>{ORDER_STATUS[order.status] ?? order.status}</span>
       </div>
       <p className="muted">Creado el {formatDate(order.created_at, true)}</p>
 
