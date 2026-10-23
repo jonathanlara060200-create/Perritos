@@ -173,6 +173,21 @@ export async function updateTag(tagId: string, fd: FormData) {
   go(back, 'ok', 'Placa actualizada.')
 }
 
+/** Borra una placa que no se necesita. Solo si no está ligada a una mascota. */
+export async function deleteTag(tagId: string, back: string) {
+  await requireAdmin()
+  const supabase = await createClient()
+  const { data: tag } = await supabase.from('tags').select('id, tag_code, pet_id').eq('id', tagId).maybeSingle()
+  if (!tag) go('/admin/tags', 'error', 'Esa placa ya no existe.')
+  if (tag.pet_id) {
+    go(back, 'error', `${tag.tag_code} está ligada a una mascota. Primero desactívala o desvincúlala; no se borra para no dejar un QR muerto.`)
+  }
+  const { data: deleted, error } = await supabase.from('tags').delete().eq('id', tagId).select('id')
+  if (error || !deleted || deleted.length === 0) go(back, 'error', 'No pudimos borrar la placa.')
+  revalidatePath('/admin/tags')
+  go('/admin/tags', 'ok', `Placa ${tag.tag_code} borrada.`)
+}
+
 export async function markNfcWritten(tagId: string, locked: boolean) {
   await requireAdmin()
   const supabase = await createClient()

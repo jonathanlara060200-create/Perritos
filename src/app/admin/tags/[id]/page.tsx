@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { addNote, markNfcWritten, replaceTag, saveNfcUid, updateTag } from '@/app/actions/admin'
+import { addNote, deleteTag, markNfcWritten, replaceTag, saveNfcUid, updateTag } from '@/app/actions/admin'
+import { ConfirmButton } from '@/components/ConfirmButton'
 import { CopyButton } from '@/components/CopyButton'
 import { Flash } from '@/components/Flash'
 import { NfcWriter } from '@/components/NfcWriter'
@@ -185,6 +186,18 @@ export default async function AdminTag({
           </div>
         ))}
       </section>
+
+      {!tag.pets && (
+        <section className="card space-y-2 border-2 border-red-100">
+          <h2 className="text-xl">Zona de peligro</h2>
+          <p className="muted">Borra esta placa si no la necesitas. No se puede deshacer.</p>
+          <form action={deleteTag.bind(null, id, back)}>
+            <ConfirmButton message={`¿Borrar la placa ${tag.tag_code}? No se puede deshacer.`} className="btn-outline btn-sm text-red-600">
+              🗑️ Borrar placa
+            </ConfirmButton>
+          </form>
+        </section>
+      )}
     </div>
   )
 }

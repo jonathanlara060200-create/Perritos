@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { deleteTag } from '@/app/actions/admin'
+import { ConfirmButton } from '@/components/ConfirmButton'
 import { Flash } from '@/components/Flash'
 import { TAG_STATUS } from '@/lib/labels'
 import { createClient } from '@/lib/supabase/server'
@@ -85,16 +87,25 @@ export default async function AdminTags({ searchParams }: { searchParams: Promis
 
       <div className="grid gap-2 md:grid-cols-2">
         {rows.map((t) => (
-          <Link key={t.id} href={`/admin/tags/${t.id}`} className="card flex items-center justify-between gap-3 transition hover:bg-axo-50">
-            <div>
+          <div key={t.id} className="card flex items-center justify-between gap-3 transition hover:bg-axo-50">
+            <Link href={`/admin/tags/${t.id}`} className="min-w-0 flex-1">
               <p className="font-extrabold">{t.tag_code}</p>
               <p className="muted">
                 {t.pets?.name ?? 'Sin mascota'} · {t.color ?? 'sin color'} · NFC {t.nfc_written_at ? '✅' : '—'}
               </p>
               <p className="muted">{formatDate(t.created_at)}</p>
+            </Link>
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              <span className="chip">{TAG_STATUS[t.status]}</span>
+              {!t.pets && (
+                <form action={deleteTag.bind(null, t.id, '/admin/tags')}>
+                  <ConfirmButton message={`¿Borrar la placa ${t.tag_code}? No se puede deshacer.`} className="rounded-xl px-2 py-1 text-xs font-bold text-red-600 hover:bg-red-50">
+                    🗑️ Borrar
+                  </ConfirmButton>
+                </form>
+              )}
             </div>
-            <span className="chip">{TAG_STATUS[t.status]}</span>
-          </Link>
+          </div>
         ))}
         {rows.length === 0 && <p className="card muted text-center md:col-span-2">No hay placas con ese filtro.</p>}
       </div>
