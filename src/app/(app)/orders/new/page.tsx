@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createOrder } from '@/app/actions/orders'
 import { Flash } from '@/components/Flash'
+import { PlateDesigner } from '@/components/PlateDesigner'
 import { SubmitButton } from '@/components/SubmitButton'
 import { getProfile, requireUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
@@ -61,41 +62,24 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Pro
           <p className="muted">Usaremos la foto principal de su perfil para diseñar la silueta. <Link href="/pets" className="font-bold text-axo-600">Revisa que tenga foto</Link>.</p>
         </section>
 
-        <section className="card space-y-4">
-          <h2 className="text-xl">2 · Elige tu placa y su color</h2>
-          {products.map((p, i) => (
-            <div key={p.id} className="rounded-3xl border-2 border-axo-100 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-lg font-extrabold">{p.name}</p>
-                  <p className="muted">{p.description}</p>
-                </div>
-                <p className="shrink-0 text-xl font-extrabold text-axo-500">{formatMoney(p.base_price, p.currency)}</p>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {p.product_variants.map((v, j) => (
-                  <label key={v.id} className="cursor-pointer">
-                    <input type="radio" name="variant_id" value={v.id} required defaultChecked={i === 0 && j === 0} className="peer sr-only" />
-                    <span className="flex items-center gap-2 rounded-full border-2 border-axo-100 px-3 py-2 text-sm font-bold peer-checked:border-axo-500 peer-checked:bg-axo-50 peer-focus-visible:ring-2">
-                      <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: v.color_hex }} />
-                      {v.color_name}
-                      {Number(v.price_delta) !== 0 && <span className="muted">+{formatMoney(v.price_delta, p.currency)}</span>}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
+        <PlateDesigner
+          products={products.map((p) => ({
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            base_price: Number(p.base_price),
+            currency: p.currency,
+            variants: p.product_variants.map((v) => ({ id: v.id, color_name: v.color_name, color_hex: v.color_hex, price_delta: Number(v.price_delta) })),
+          }))}
+        />
+
+        <section className="card space-y-3">
+          <h2 className="text-xl">Notas para el diseño</h2>
+          <textarea name="customer_notes" rows={3} maxLength={1000} placeholder="Opcional. Ej. Tiene una oreja caída." className="input" />
         </section>
 
         <section className="card space-y-3">
-          <h2 className="text-xl">3 · Nombre en la placa</h2>
-          <input name="engraved_name" maxLength={40} placeholder="Si lo dejas vacío usamos el nombre de tu mascota" className="input" />
-          <textarea name="customer_notes" rows={3} maxLength={1000} placeholder="Notas para el diseño (opcional). Ej. Tiene una oreja caída." className="input" />
-        </section>
-
-        <section className="card space-y-3">
-          <h2 className="text-xl">4 · Datos de envío</h2>
+          <h2 className="text-xl">Datos de envío</h2>
           <input name="shipping_name" required defaultValue={profile?.full_name ?? ''} placeholder="Nombre de quien recibe" className="input" autoComplete="name" />
           <input name="shipping_phone" required defaultValue={profile?.phone ?? ''} inputMode="tel" placeholder="Teléfono" className="input" autoComplete="tel" />
           <input name="street" required placeholder="Calle y número" className="input" autoComplete="address-line1" />

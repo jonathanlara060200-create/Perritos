@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CHARMS, FONTS, SHAPES, SIZES, labelOf } from '@/lib/plate'
 import { notFound } from 'next/navigation'
 import { addNote, assignTagToItem, registerPayment, saveDesign, updateOrder } from '@/app/actions/admin'
 import { Flash } from '@/components/Flash'
@@ -17,6 +18,9 @@ type Design = {
   thickness_mm: number | null
   pla_color: string | null
   engraved_name: string | null
+  size_code: string | null
+  font: string | null
+  charm: string | null
   dtf_uv: boolean
   notes: string | null
   approved_at: string | null
@@ -169,6 +173,9 @@ export default async function AdminOrder({
             {design && (
               <form action={saveDesign.bind(null, design.id, id)} className="space-y-3 border-t border-axo-100 pt-4">
                 <h3 className="font-extrabold">Datos de fabricación</h3>
+                <p className="rounded-xl bg-butter/50 p-2 text-sm font-bold">
+                  Pidió: forma {labelOf(SHAPES, design.silhouette_type)} · talla {labelOf(SIZES, design.size_code)} · tipografía {labelOf(FONTS, design.font)} · charm {design.charm ? labelOf(CHARMS, design.charm) : 'sin charm'}
+                </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <input name="silhouette_type" defaultValue={design.silhouette_type ?? ''} placeholder="Tipo de silueta" className="input col-span-2 sm:col-span-1" />
                   <input name="width_mm" inputMode="decimal" defaultValue={design.width_mm ?? ''} placeholder="Ancho mm" className="input" />
