@@ -30,7 +30,10 @@ export async function createPreference(input: {
       statement_descriptor: 'AJOLOTE ID',
     }),
   })
-  if (!res.ok) throw new Error(`Mercado Pago ${res.status}`)
+  if (!res.ok) {
+    const detail = (await res.text().catch(() => '')).slice(0, 300)
+    throw new Error(`Mercado Pago ${res.status}: ${detail}`)
+  }
   const json = (await res.json()) as { init_point?: string }
   if (!json.init_point) throw new Error('Mercado Pago no devolvió el link de pago')
   return json.init_point

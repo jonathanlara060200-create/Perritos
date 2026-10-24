@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
-import { requireUser } from '@/lib/auth'
+import { getProfile, requireUser } from '@/lib/auth'
 import { go } from '@/lib/flash'
 import { createClient } from '@/lib/supabase/server'
 import { createPreference, mpEnabled } from '@/lib/mercadopago'
@@ -78,8 +78,10 @@ export async function payOrder(orderId: string) {
       payerEmail: user.email,
       siteUrl: siteUrl(),
     })
-  } catch {
-    go(back, 'error', 'No pudimos abrir el pago en línea. Intenta de nuevo o usa la transferencia.')
+  } catch (e) {
+    const isAdmin = (await getProfile())?.role === 'admin'
+    const detail = isAdmin && e instanceof Error ? ` [admin: ${e.message}]` : ''
+    go(back, 'error', `No pudimos abrir el pago en línea. Intenta de nuevo o usa la transferencia.${detail}`)
   }
   redirect(link)
 }
