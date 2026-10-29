@@ -1,4 +1,4 @@
-import { BASE_COLORS, COLOR_LIST, CUSTOM_STATUS, ITEM_TYPE } from '@/lib/clickers'
+import { BASE_COLORS, COLOR_LIST, CUSTOM_STATUS, ITEM_TYPE, PRICE_PER_LETTER } from '@/lib/clickers'
 
 export type ClickerFormValues = {
   customer_name?: string
@@ -88,7 +88,8 @@ export function ClickerFields({ v = {}, withStatus = false }: { v?: ClickerFormV
 
       <div>
         <label className="label">Precio (MXN)</label>
-        <input name="price" inputMode="decimal" defaultValue={v.price ?? ''} placeholder="0" className="input" />
+        <input name="price" inputMode="decimal" defaultValue={v.price ?? ''} placeholder={`Auto: $${PRICE_PER_LETTER} por letra`} className="input" />
+        <p className="muted mt-1">Déjalo vacío y en los clickers se calcula solo: letras × ${PRICE_PER_LETTER}.</p>
       </div>
       <div>
         <label className="label">Ya pagó (MXN)</label>

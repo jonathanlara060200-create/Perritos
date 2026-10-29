@@ -91,3 +91,6 @@ export type PartKey = (typeof PARTS)[number]['key']
 
 /** Cuántas teclas/letras lleva el nombre (los espacios no cuentan). */
 export const countPieces = (name?: string | null) => (name ? [...name].filter((c) => c.trim() !== '').length : 0)
+
+/** Precio automático del clicker: $ por cada letra (tecla) del nombre. */
+export const PRICE_PER_LETTER = 20

@@ -101,14 +101,15 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
   const open = all.filter(isOpen)
   const working = all.filter((r) => r.status === 'pending' || r.status === 'in_progress')
 
-  // Resumen
-  const toCollect = all
-    .filter((r) => r.status !== 'cancelled')
-    .reduce((s, r) => s + Math.max(0, Number(r.price) - Number(r.paid_amount)), 0)
+  // Resumen de dinero (los cancelados no cuentan)
+  const live = all.filter((r) => r.status !== 'cancelled')
+  const collected = live.reduce((s, r) => s + Math.min(Number(r.paid_amount), Number(r.price)), 0)
+  const toCollect = live.reduce((s, r) => s + Math.max(0, Number(r.price) - Number(r.paid_amount)), 0)
   const stats: [string, string | number, string][] = [
     ['Pedidos abiertos', open.length, '📦'],
     ['Listos para entregar', all.filter((r) => r.status === 'ready').length, '✅'],
-    ['Por cobrar', formatMoney(toCollect), '💰'],
+    ['Cobrado', formatMoney(collected), '💵'],
+    ['Por cobrar', formatMoney(toCollect), '⏳'],
   ]
 
   // Qué falta por hacer, por color
@@ -144,7 +145,7 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
       <Flash sp={sp} />
       <ColorDatalists />
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([l, v, i]) => (
           <div key={l} className="card text-center">
             <div className="text-2xl">{i}</div>
