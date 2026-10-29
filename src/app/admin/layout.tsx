@@ -5,6 +5,8 @@ import { requireAdmin } from '@/lib/auth'
 const NAV = [
   ['/admin', 'Resumen'],
   ['/admin/orders', 'Pedidos'],
+  ['/admin/clickers', 'Clickers y llaveros'],
+  ['/admin/calculadora', 'Calculadora 3D'],
   ['/admin/pets', 'Mascotas'],
   ['/admin/tags', 'Placas · QR · NFC'],
   ['/admin/lost', 'Perdidas'],
