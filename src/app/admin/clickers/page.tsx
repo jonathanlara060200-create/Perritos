@@ -166,15 +166,16 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
         <section className="card space-y-3">
           <h2 className="text-xl">Por hacer (clickers en proceso)</h2>
           <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              ['Bases', bases, ''],
-              ['Teclas', keys, ' pzas'],
-              ['Letras', letters, ' pzas'],
-            ].map(([title, items, unit]) => {
-              const list = items as { label: string; n: number }[]
+            {(
+              [
+                ['Bases', bases, ''],
+                ['Teclas', keys, ' pzas'],
+                ['Letras', letters, ' pzas'],
+              ] as [string, { label: string; n: number }[], string][]
+            ).map(([title, list, unit]) => {
               return (
-                <div key={title as string}>
-                  <h3 className="mb-1 font-extrabold">{title as string}</h3>
+                <div key={title}>
+                  <h3 className="mb-1 font-extrabold">{title}</h3>
                   {list.length === 0 ? (
                     <p className="muted">Todo listo ✓</p>
                   ) : (
