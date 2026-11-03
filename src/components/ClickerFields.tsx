@@ -1,4 +1,4 @@
-import { BASE_COLORS, COLOR_LIST, CUSTOM_STATUS, ITEM_TYPE, PRICE_PER_LETTER } from '@/lib/clickers'
+import { BASE_COLORS, CUSTOM_STATUS, ITEM_TYPE, PRICE_PER_LETTER, canonicalColor } from '@/lib/clickers'
 
 export type ClickerFormValues = {
   customer_name?: string
@@ -17,21 +17,18 @@ export type ClickerFormValues = {
   status?: string
 }
 
-/** Listas de sugerencias de color. Se ponen UNA vez por página y los inputs las usan con list="…". */
-export function ColorDatalists() {
+/** Selector con tus 4 colores. Si un pedido viejo trae otro nombre, se conserva como opción extra. */
+function ColorSelect({ name, value }: { name: string; value?: string | null }) {
+  const current = canonicalColor(value) ?? ''
+  const known = BASE_COLORS.some((c) => c.name === current)
   return (
-    <>
-      <datalist id="clr-base">
-        {BASE_COLORS.map((c) => (
-          <option key={c.name} value={c.name} />
-        ))}
-      </datalist>
-      <datalist id="clr-all">
-        {COLOR_LIST.map((c) => (
-          <option key={c.name} value={c.name} />
-        ))}
-      </datalist>
-    </>
+    <select name={name} defaultValue={current} className="input">
+      <option value="">Elige color</option>
+      {BASE_COLORS.map((c) => (
+        <option key={c.name} value={c.name}>{c.name}</option>
+      ))}
+      {current && !known && <option value={current}>{current}</option>}
+    </select>
   )
 }
 
@@ -69,15 +66,15 @@ export function ClickerFields({ v = {}, withStatus = false }: { v?: ClickerFormV
       <div className="grid gap-3 sm:col-span-2 sm:grid-cols-3">
         <div>
           <label className="label">Color de la base</label>
-          <input name="base_color" list="clr-base" defaultValue={v.base_color ?? ''} maxLength={40} placeholder="Azul cielo…" className="input" />
+          <ColorSelect name="base_color" value={v.base_color} />
         </div>
         <div>
           <label className="label">Color de la tecla</label>
-          <input name="key_color" list="clr-all" defaultValue={v.key_color ?? ''} maxLength={40} placeholder="El que pidan" className="input" />
+          <ColorSelect name="key_color" value={v.key_color} />
         </div>
         <div>
           <label className="label">Color de la letra</label>
-          <input name="letter_color" list="clr-all" defaultValue={v.letter_color ?? ''} maxLength={40} placeholder="El que pidan" className="input" />
+          <ColorSelect name="letter_color" value={v.letter_color} />
         </div>
       </div>
 

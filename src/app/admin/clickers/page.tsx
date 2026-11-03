@@ -7,7 +7,7 @@ import {
   togglePart,
   updateCustomOrder,
 } from '@/app/actions/clickers'
-import { ClickerFields, ColorDatalists } from '@/components/ClickerFields'
+import { ClickerFields } from '@/components/ClickerFields'
 import { ClickerPreview, ColorDot } from '@/components/ClickerPreview'
 import { PendingPrints } from '@/components/PendingPrints'
 import { ConfirmButton } from '@/components/ConfirmButton'
@@ -103,9 +103,9 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
   // Qué falta por hacer, por color
   const clickersInWork = working.filter((r) => r.item_type === 'clicker')
   const who = (r: Row) => (r.control_name ? `${r.control_name.toUpperCase()} (${r.customer_name})` : r.customer_name)
-  const bases = groupPending(clickersInWork.filter((r) => !r.base_done).map((r) => ({ color: r.base_color, name: r.control_name, who: who(r) })), false)
-  const keys = groupPending(clickersInWork.filter((r) => !r.keys_done).map((r) => ({ color: r.key_color, name: r.control_name, who: who(r) })), true)
-  const letters = groupPending(clickersInWork.filter((r) => !r.letters_done).map((r) => ({ color: r.letter_color, name: r.control_name, who: who(r) })), true)
+  const bases = groupPending(clickersInWork.filter((r) => !r.base_done).map((r) => ({ color: r.base_color, name: r.control_name, who: who(r) })))
+  const keys = groupPending(clickersInWork.filter((r) => !r.keys_done).map((r) => ({ color: r.key_color, name: r.control_name, who: who(r) })))
+  const letters = groupPending(clickersInWork.filter((r) => !r.letters_done).map((r) => ({ color: r.letter_color, name: r.control_name, who: who(r) })))
 
   // Filtros: pestañas Abiertos / Terminados / Todos. Siempre lo más reciente arriba.
   const ver = sp.ver === 'terminados' || sp.ver === 'todos' ? sp.ver : 'abiertos'
@@ -143,7 +143,6 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
     <div className="space-y-6">
       <h1 className="text-3xl">Clickers y llaveros</h1>
       <Flash sp={sp} />
-      <ColorDatalists />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([l, v, i]) => (

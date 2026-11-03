@@ -27,8 +27,18 @@ function Swatch({ label, hex }: { label: string; hex: string | null }) {
   )
 }
 
-function Who({ who }: { who: string[] }) {
-  return <p className="muted">Para: {who.join(', ')}</p>
+function Who({ who }: { who: { label: string; n: number }[] }) {
+  return (
+    <p className="muted">
+      Para:{' '}
+      {who.map((w, i) => (
+        <span key={w.label}>
+          {i > 0 && ', '}
+          {w.label} <b>×{w.n}</b>
+        </span>
+      ))}
+    </p>
+  )
 }
 
 function Block({ title, hint, empty, children }: { title: string; hint: string; empty: boolean; children: React.ReactNode }) {
@@ -46,18 +56,25 @@ function Block({ title, hint, empty, children }: { title: string; hint: string; 
 export function PendingPrints({ bases, keys, letters }: { bases: PendingGroup[]; keys: PendingGroup[]; letters: PendingGroup[] }) {
   return (
     <div className="space-y-6">
-      <Block title="Bases por imprimir" hint="Una base por clicker, en este color." empty={bases.length === 0}>
+      <Block title="Bases por imprimir" hint="Una base por cada letra del nombre, en este color." empty={bases.length === 0}>
         <div className="grid gap-3 sm:grid-cols-2">
-          {bases.map((g) => (
-            <div key={g.label} className="space-y-2 rounded-2xl bg-axo-50 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <Swatch label={g.label} hex={colorHex(g.label)} />
-                <b className="text-lg">{g.n} {g.n === 1 ? 'base' : 'bases'}</b>
+          {bases.map((g) => {
+            const hex = colorHex(g.label) ?? '#E5E7EB'
+            return (
+              <div key={g.label} className="space-y-3 rounded-2xl bg-axo-50 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <Swatch label={g.label} hex={colorHex(g.label)} />
+                  <b className="text-lg">{g.n} {g.n === 1 ? 'base' : 'bases'}</b>
+                </div>
+                <div className="flex flex-wrap gap-1.5" aria-hidden>
+                  {Array.from({ length: Math.min(g.n, 60) }, (_, i) => (
+                    <span key={i} className="h-5 w-5 rounded-md border border-black/15" style={{ background: hex, boxShadow: 'inset 0 -2px 0 rgba(0,0,0,.12)' }} />
+                  ))}
+                </div>
+                <Who who={g.who} />
               </div>
-              <div className="h-3 rounded-full border border-black/10" style={{ background: colorHex(g.label) ?? '#E5E7EB' }} />
-              <Who who={g.who} />
-            </div>
-          ))}
+            )
+          })}
         </div>
       </Block>
 

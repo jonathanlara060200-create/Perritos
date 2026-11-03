@@ -6,42 +6,46 @@ export const BASE_COLORS = [
   { name: 'Morado', hex: '#A98BDB' },
 ] as const
 
-/** Colores comunes para teclas y letras (sugerencias; se puede escribir cualquier nombre). */
-const OTHER_COLORS = [
-  { name: 'Rosa', hex: '#F472B6' },
-  { name: 'Rosa fuerte', hex: '#EC4899' },
-  { name: 'Fucsia', hex: '#D946EF' },
-  { name: 'Lila', hex: '#C4B5FD' },
-  { name: 'Rojo', hex: '#EF4444' },
-  { name: 'Coral', hex: '#FF7F6B' },
-  { name: 'Naranja', hex: '#FB923C' },
-  { name: 'Verde', hex: '#4ADE80' },
-  { name: 'Verde menta', hex: '#A7E8C9' },
-  { name: 'Verde oscuro', hex: '#15803D' },
-  { name: 'Turquesa', hex: '#2DD4BF' },
-  { name: 'Azul', hex: '#3B82F6' },
-  { name: 'Azul marino', hex: '#1E3A8A' },
-  { name: 'Negro', hex: '#1F1F1F' },
-  { name: 'Blanco', hex: '#FFFFFF' },
-  { name: 'Gris', hex: '#9CA3AF' },
-  { name: 'Café', hex: '#8B5A2B' },
-  { name: 'Beige', hex: '#E8D5B7' },
-  { name: 'Dorado', hex: '#D4AF37' },
-  { name: 'Plateado', hex: '#C0C0C0' },
-] as const
-
-export const COLOR_LIST: readonly { name: string; hex: string }[] = [...BASE_COLORS, ...OTHER_COLORS]
+/** Los 4 colores de filamento que manejas: base, tecla y letra salen siempre de estos. */
+export const COLOR_LIST: readonly { name: string; hex: string }[] = BASE_COLORS
 
 /** Minúsculas, sin acentos y sin espacios repetidos: "Rosa  Bajito" = "rosa bajito". */
 export const colorKey = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/\s+/g, ' ')
 
+/** Nombres abreviados o "de cariño" → el color real que tienes (Azul = Azul cielo, Lila = Morado, Rosa = Rosa bajito). */
+const ALIASES: Record<string, string> = {
+  azul: 'Azul cielo',
+  'azul cielo': 'Azul cielo',
+  'azul claro': 'Azul cielo',
+  celeste: 'Azul cielo',
+  rosa: 'Rosa bajito',
+  'rosa bajito': 'Rosa bajito',
+  'rosa claro': 'Rosa bajito',
+  'rosa pastel': 'Rosa bajito',
+  rosita: 'Rosa bajito',
+  amarillo: 'Amarillo',
+  morado: 'Morado',
+  lila: 'Morado',
+  lavanda: 'Morado',
+  violeta: 'Morado',
+  purpura: 'Morado',
+}
+
+/** Nombre oficial del color si lo reconocemos; si no, lo que se escribió (sin espacios sobrantes). */
+export function canonicalColor(name?: string | null): string | null {
+  const t = name?.trim()
+  if (!t) return null
+  return ALIASES[colorKey(t)] ?? t
+}
+
 const COLOR_MAP = new Map(COLOR_LIST.map((c) => [colorKey(c.name), c.hex]))
 
 /** Hex del color por nombre (o si escribiste directamente un #RRGGBB). null si no lo conocemos. */
 export function colorHex(name?: string | null): string | null {
-  if (!name) return null
-  const k = colorKey(name)
+  const c = canonicalColor(name)
+  if (!c) return null
+  const k = colorKey(c)
   if (/^#[0-9a-f]{6}$/.test(k)) return k
   return COLOR_MAP.get(k) ?? null
 }
@@ -89,45 +93,49 @@ export const PARTS = [
 
 export type PartKey = (typeof PARTS)[number]['key']
 
-/** Cuántas teclas/letras lleva el nombre (los espacios no cuentan). */
-export const countPieces = (name?: string | null) => (name ? [...name].filter((c) => c.trim() !== '').length : 0)
+const SEGMENTER = typeof Intl !== 'undefined' && 'Segmenter' in Intl ? new Intl.Segmenter('es', { granularity: 'grapheme' }) : null
+
+/** Una pieza por letra o emoji del nombre (los espacios no cuentan). */
+export function pieces(name?: string | null): string[] {
+  if (!name) return []
+  const parts = SEGMENTER ? [...SEGMENTER.segment(name)].map((s) => s.segment) : [...name]
+  return parts.filter((c) => c.trim() !== '')
+}
+
+/** Cuántas teclas/letras/bases lleva el nombre. */
+export const countPieces = (name?: string | null) => pieces(name).length
 
 /** Precio automático del clicker: $ por cada letra (tecla) del nombre. */
 export const PRICE_PER_LETTER = 20
 
 export type PendingGroup = {
   label: string
-  /** Piezas por imprimir en este color (bases: pedidos; teclas y letras: letras). */
+  /** Piezas por imprimir en este color. */
   n: number
-  /** Letras a imprimir y cuántas de cada una (vacío en bases). */
+  /** Letras a imprimir y cuántas de cada una. */
   letters: [string, number][]
-  /** De quién son (sin repetir). */
-  who: string[]
+  /** De quién son y cuántas piezas le tocan a cada quien. */
+  who: { label: string; n: number }[]
 }
 
-/** Agrupa por color lo que falta por imprimir. perLetter = true cuenta cada letra del nombre; false cuenta 1 por pedido. */
-export function groupPending(
-  items: { color: string | null; name: string | null; who: string }[],
-  perLetter: boolean,
-): PendingGroup[] {
+/** Agrupa por color lo que falta por imprimir: una pieza por letra (o emoji) del nombre. */
+export function groupPending(items: { color: string | null; name: string | null; who: string }[]): PendingGroup[] {
   const m = new Map<string, PendingGroup & { map: Map<string, number> }>()
   for (const it of items) {
-    const chars = perLetter ? [...(it.name ?? '')].filter((c) => c.trim() !== '').map((c) => c.toLocaleUpperCase('es-MX')) : []
-    if (perLetter && chars.length === 0) continue
-    const label = it.color?.trim() || 'Sin definir'
+    const chars = pieces(it.name).map((c) => c.toLocaleUpperCase('es-MX'))
+    if (chars.length === 0) continue
+    const label = canonicalColor(it.color) ?? 'Sin definir'
     const k = colorKey(label)
     let g = m.get(k)
     if (!g) {
       g = { label, n: 0, letters: [], who: [], map: new Map() }
       m.set(k, g)
     }
-    if (perLetter) {
-      g.n += chars.length
-      for (const c of chars) g.map.set(c, (g.map.get(c) ?? 0) + 1)
-    } else {
-      g.n += 1
-    }
-    if (!g.who.includes(it.who)) g.who.push(it.who)
+    g.n += chars.length
+    for (const c of chars) g.map.set(c, (g.map.get(c) ?? 0) + 1)
+    const w = g.who.find((x) => x.label === it.who)
+    if (w) w.n += chars.length
+    else g.who.push({ label: it.who, n: chars.length })
   }
   return [...m.values()]
     .map(({ map, ...g }) => ({ ...g, letters: [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es')) }))
