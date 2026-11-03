@@ -73,7 +73,14 @@ export async function togglePart(id: string, part: PartKey) {
   if (!cur) return
 
   const next = { base_done: !!cur.base_done, keys_done: !!cur.keys_done, letters_done: !!cur.letters_done }
-  next[part] = !next[part]
+  if (part === 'keys_done') {
+    // Tecla y letra se imprimen juntas: se marcan o desmarcan a la vez.
+    const value = !(next.keys_done && next.letters_done)
+    next.keys_done = value
+    next.letters_done = value
+  } else {
+    next[part] = !next[part]
+  }
   const all = next.base_done && next.keys_done && next.letters_done
   const any = next.base_done || next.keys_done || next.letters_done
 

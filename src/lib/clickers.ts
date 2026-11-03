@@ -87,11 +87,10 @@ export const CUSTOM_STATUS_STYLE: Record<string, string> = {
 /** Estados "abiertos": todavía hay trabajo o falta entregar. */
 export const ACTIVE_STATUSES = ['pending', 'in_progress', 'ready']
 
-/** Partes del clicker que se van completando. */
+/** Partes del clicker que se van completando. La tecla y su letra salen en la misma impresión, por eso son una sola parte. */
 export const PARTS = [
   { key: 'base_done', label: 'Base' },
-  { key: 'keys_done', label: 'Teclas' },
-  { key: 'letters_done', label: 'Letras' },
+  { key: 'keys_done', label: 'Teclas con letra' },
 ] as const
 
 export type PartKey = (typeof PARTS)[number]['key']
@@ -113,6 +112,8 @@ export const PRICE_PER_LETTER = 20
 
 export type PendingGroup = {
   label: string
+  /** Solo en teclas con letra: el color de la letra (label es el de la tecla). */
+  letterColor?: string
   /** Piezas por imprimir en este color. */
   n: number
   /** Letras a imprimir y cuántas de cada una. */
@@ -132,6 +133,33 @@ export function groupPending(items: { color: string | null; name: string | null;
     let g = m.get(k)
     if (!g) {
       g = { label, n: 0, letters: [], who: [], map: new Map() }
+      m.set(k, g)
+    }
+    g.n += chars.length
+    for (const c of chars) g.map.set(c, (g.map.get(c) ?? 0) + 1)
+    const w = g.who.find((x) => x.label === it.who)
+    if (w) w.n += chars.length
+    else g.who.push({ label: it.who, n: chars.length })
+  }
+  return [...m.values()]
+    .map(({ map, ...g }) => ({ ...g, letters: [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es')) }))
+    .sort((a, b) => b.n - a.n)
+}
+
+/** Teclas con letra: se imprimen juntas, así que se agrupan por color de tecla + color de letra. */
+export function groupPendingKeys(
+  items: { keyColor: string | null; letterColor: string | null; name: string | null; who: string }[],
+): PendingGroup[] {
+  const m = new Map<string, PendingGroup & { map: Map<string, number> }>()
+  for (const it of items) {
+    const chars = pieces(it.name).map((c) => c.toLocaleUpperCase('es-MX'))
+    if (chars.length === 0) continue
+    const label = officialColor(it.keyColor) ?? 'Sin definir'
+    const letterColor = officialColor(it.letterColor) ?? 'Sin definir'
+    const k = `${colorKey(label)}|${colorKey(letterColor)}`
+    let g = m.get(k)
+    if (!g) {
+      g = { label, letterColor, n: 0, letters: [], who: [], map: new Map() }
       m.set(k, g)
     }
     g.n += chars.length

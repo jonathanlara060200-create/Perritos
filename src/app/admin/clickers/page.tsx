@@ -20,6 +20,7 @@ import {
   ITEM_TYPE,
   PARTS,
   groupPending,
+  groupPendingKeys,
 } from '@/lib/clickers'
 import { createClient } from '@/lib/supabase/server'
 import { TZ, formatMoney } from '@/lib/utils'
@@ -104,8 +105,11 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
   const clickersInWork = working.filter((r) => r.item_type === 'clicker')
   const who = (r: Row) => (r.control_name ? `${r.control_name.toUpperCase()} (${r.customer_name})` : r.customer_name)
   const bases = groupPending(clickersInWork.filter((r) => !r.base_done).map((r) => ({ color: r.base_color, name: r.control_name, who: who(r) })))
-  const keys = groupPending(clickersInWork.filter((r) => !r.keys_done).map((r) => ({ color: r.key_color, name: r.control_name, who: who(r) })))
-  const letters = groupPending(clickersInWork.filter((r) => !r.letters_done).map((r) => ({ color: r.letter_color, name: r.control_name, who: who(r) })))
+  const keys = groupPendingKeys(
+    clickersInWork
+      .filter((r) => !(r.keys_done && r.letters_done))
+      .map((r) => ({ keyColor: r.key_color, letterColor: r.letter_color, name: r.control_name, who: who(r) })),
+  )
 
   // Filtros: pestañas Abiertos / Terminados / Todos. Siempre lo más reciente arriba.
   const ver = sp.ver === 'terminados' || sp.ver === 'todos' ? sp.ver : 'abiertos'
@@ -165,8 +169,8 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
       {clickersInWork.length > 0 && (
         <section className="card space-y-4">
           <h2 className="text-xl">Por imprimir (clickers en proceso)</h2>
-          <PendingPrints bases={bases} keys={keys} letters={letters} />
-          <p className="muted">Se cuenta lo que aún no marcas como hecho (Base, Teclas, Letras) en cada pedido.</p>
+          <PendingPrints bases={bases} keys={keys} />
+          <p className="muted">Se cuenta lo que aún no marcas como hecho (Base y Teclas con letra) en cada pedido.</p>
         </section>
       )}
 
@@ -239,7 +243,7 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
               {isClicker && isOpen(o) && (
                 <div className="flex flex-wrap gap-2">
                   {PARTS.map((p) => {
-                    const done = o[p.key]
+                    const done = p.key === 'keys_done' ? o.keys_done && o.letters_done : o[p.key]
                     return (
                       <form key={p.key} action={togglePart.bind(null, o.id, p.key)}>
                         <button

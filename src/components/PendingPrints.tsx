@@ -1,11 +1,16 @@
 import { colorHex, readableOn, type PendingGroup } from '@/lib/clickers'
 
-/** Una pieza por letra; el numerito es cuántas de esa letra hay que imprimir. */
-function Tile({ ch, count, bg, fg }: { ch: string; count: number; bg: string; fg: string }) {
+/** Una tecla tal como va a quedar: color de tecla con la letra en su color. El numerito es cuántas de esa letra. */
+function KeyTile({ ch, count, keyHex, letterHex }: { ch: string; count: number; keyHex: string; letterHex: string }) {
   return (
     <span
-      className="relative flex h-11 w-11 items-center justify-center rounded-lg border border-black/15 text-xl font-extrabold"
-      style={{ background: bg, color: fg, boxShadow: 'inset 0 -3px 0 rgba(0,0,0,.12)' }}
+      className="relative flex h-12 w-12 items-center justify-center rounded-lg border border-black/15 text-xl font-extrabold"
+      style={{
+        background: keyHex,
+        color: letterHex,
+        textShadow: '0 1px 1px rgba(0,0,0,.4)',
+        boxShadow: 'inset 0 -3px 0 rgba(0,0,0,.12)',
+      }}
       title={`${ch} × ${count}`}
     >
       {ch}
@@ -18,9 +23,10 @@ function Tile({ ch, count, bg, fg }: { ch: string; count: number; bg: string; fg
   )
 }
 
-function Swatch({ label, hex }: { label: string; hex: string | null }) {
+function Swatch({ label, hex, prefix }: { label: string; hex: string | null; prefix?: string }) {
   return (
-    <span className="inline-flex items-center gap-2 font-extrabold">
+    <span className="inline-flex items-center gap-1.5 font-extrabold">
+      {prefix && <span className="font-bold text-ink/60">{prefix}</span>}
       <span className="inline-block h-5 w-5 rounded-full border border-black/15" style={{ background: hex ?? '#E5E7EB' }} />
       {label}
     </span>
@@ -53,7 +59,7 @@ function Block({ title, hint, empty, children }: { title: string; hint: string; 
   )
 }
 
-export function PendingPrints({ bases, keys, letters }: { bases: PendingGroup[]; keys: PendingGroup[]; letters: PendingGroup[] }) {
+export function PendingPrints({ bases, keys }: { bases: PendingGroup[]; keys: PendingGroup[] }) {
   return (
     <div className="space-y-6">
       <Block title="Bases por imprimir" hint="Una base por cada letra del nombre, en este color." empty={bases.length === 0}>
@@ -78,41 +84,40 @@ export function PendingPrints({ bases, keys, letters }: { bases: PendingGroup[];
         </div>
       </Block>
 
-      <Block title="Teclas por imprimir" hint="Cada recuadro es una tecla del color que dice; el numerito es cuántas de esa letra." empty={keys.length === 0}>
+      <Block
+        title="Teclas con letra por imprimir"
+        hint="La tecla y su letra salen en la misma impresión: color de tecla + color de letra. Cada recuadro es como va a quedar; el numerito es cuántas de esa letra."
+        empty={keys.length === 0}
+      >
         <div className="grid gap-3 sm:grid-cols-2">
           {keys.map((g) => {
-            const hex = colorHex(g.label)
+            const keyHex = colorHex(g.label)
+            const letterHex = colorHex(g.letterColor)
+            const same = !!keyHex && keyHex === letterHex
             return (
-              <div key={g.label} className="space-y-3 rounded-2xl bg-axo-50 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <Swatch label={g.label} hex={hex} />
+              <div key={`${g.label}|${g.letterColor}`} className="space-y-3 rounded-2xl bg-axo-50 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-1">
+                    <Swatch prefix="Tecla" label={g.label} hex={keyHex} />
+                    <br />
+                    <Swatch prefix="Letra" label={g.letterColor ?? 'Sin definir'} hex={letterHex} />
+                  </div>
                   <b className="text-lg">{g.n} pzas</b>
                 </div>
+                {same && (
+                  <p className="rounded-xl bg-red-50 p-2 text-sm font-bold text-red-700">
+                    Tecla y letra del mismo color: la letra no se va a ver. Revisa el pedido.
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-2">
                   {g.letters.map(([ch, n]) => (
-                    <Tile key={ch} ch={ch} count={n} bg={hex ?? '#F3F4F6'} fg={hex ? readableOn(hex) : '#374151'} />
-                  ))}
-                </div>
-                <Who who={g.who} />
-              </div>
-            )
-          })}
-        </div>
-      </Block>
-
-      <Block title="Letras por imprimir" hint="Las letras van en el color que dice; el fondo del recuadro solo ayuda a verlas." empty={letters.length === 0}>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {letters.map((g) => {
-            const hex = colorHex(g.label)
-            return (
-              <div key={g.label} className="space-y-3 rounded-2xl bg-axo-50 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <Swatch label={g.label} hex={hex} />
-                  <b className="text-lg">{g.n} pzas</b>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {g.letters.map(([ch, n]) => (
-                    <Tile key={ch} ch={ch} count={n} bg={hex ? readableOn(hex) : '#F3F4F6'} fg={hex ?? '#374151'} />
+                    <KeyTile
+                      key={ch}
+                      ch={ch}
+                      count={n}
+                      keyHex={keyHex ?? '#F3F4F6'}
+                      letterHex={letterHex ?? (keyHex ? readableOn(keyHex) : '#374151')}
+                    />
                   ))}
                 </div>
                 <Who who={g.who} />
