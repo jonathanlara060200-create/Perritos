@@ -39,15 +39,18 @@ export function canonicalColor(name?: string | null): string | null {
   return ALIASES[colorKey(t)] ?? t
 }
 
-const COLOR_MAP = new Map(COLOR_LIST.map((c) => [colorKey(c.name), c.hex]))
+const COLOR_MAP = new Map(COLOR_LIST.map((c) => [c.name, c.hex]))
 
-/** Hex del color por nombre (o si escribiste directamente un #RRGGBB). null si no lo conocemos. */
-export function colorHex(name?: string | null): string | null {
+/** El color oficial (uno de los 4) o null. Reconoce alias: azul, lila, rosa… Cualquier otra cosa no es válida. */
+export function officialColor(name?: string | null): string | null {
   const c = canonicalColor(name)
-  if (!c) return null
-  const k = colorKey(c)
-  if (/^#[0-9a-f]{6}$/.test(k)) return k
-  return COLOR_MAP.get(k) ?? null
+  return c && COLOR_MAP.has(c) ? c : null
+}
+
+/** Hex del color oficial. null si no es uno de los 4. */
+export function colorHex(name?: string | null): string | null {
+  const c = officialColor(name)
+  return c ? (COLOR_MAP.get(c) ?? null) : null
 }
 
 /** Negro o blanco, el que mejor se lea sobre ese fondo. */
@@ -124,7 +127,7 @@ export function groupPending(items: { color: string | null; name: string | null;
   for (const it of items) {
     const chars = pieces(it.name).map((c) => c.toLocaleUpperCase('es-MX'))
     if (chars.length === 0) continue
-    const label = canonicalColor(it.color) ?? 'Sin definir'
+    const label = officialColor(it.color) ?? 'Sin definir'
     const k = colorKey(label)
     let g = m.get(k)
     if (!g) {

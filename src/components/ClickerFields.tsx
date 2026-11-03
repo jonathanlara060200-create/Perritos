@@ -1,4 +1,4 @@
-import { BASE_COLORS, CUSTOM_STATUS, ITEM_TYPE, PRICE_PER_LETTER, canonicalColor } from '@/lib/clickers'
+import { BASE_COLORS, CUSTOM_STATUS, ITEM_TYPE, PRICE_PER_LETTER, officialColor } from '@/lib/clickers'
 
 export type ClickerFormValues = {
   customer_name?: string
@@ -17,17 +17,14 @@ export type ClickerFormValues = {
   status?: string
 }
 
-/** Selector con tus 4 colores. Si un pedido viejo trae otro nombre, se conserva como opción extra. */
+/** Selector con tus 4 colores y nada más. */
 function ColorSelect({ name, value }: { name: string; value?: string | null }) {
-  const current = canonicalColor(value) ?? ''
-  const known = BASE_COLORS.some((c) => c.name === current)
   return (
-    <select name={name} defaultValue={current} className="input">
+    <select name={name} defaultValue={officialColor(value) ?? ''} className="input">
       <option value="">Elige color</option>
       {BASE_COLORS.map((c) => (
         <option key={c.name} value={c.name}>{c.name}</option>
       ))}
-      {current && !known && <option value={current}>{current}</option>}
     </select>
   )
 }

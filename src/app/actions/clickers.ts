@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/auth'
-import { ITEM_TYPE, CUSTOM_STATUS, PARTS, PRICE_PER_LETTER, canonicalColor, countPieces, type PartKey } from '@/lib/clickers'
+import { ITEM_TYPE, CUSTOM_STATUS, PARTS, PRICE_PER_LETTER, countPieces, officialColor, type PartKey } from '@/lib/clickers'
 import { go } from '@/lib/flash'
 import { createClient } from '@/lib/supabase/server'
 import { str } from '@/lib/utils'
@@ -22,9 +22,9 @@ function readFields(fd: FormData) {
     contact: str(fd.get('contact'))?.slice(0, 120) ?? null,
     item_type: type in ITEM_TYPE ? type : 'clicker',
     control_name: controlName,
-    base_color: canonicalColor(str(fd.get('base_color')))?.slice(0, 40) ?? null,
-    key_color: canonicalColor(str(fd.get('key_color')))?.slice(0, 40) ?? null,
-    letter_color: canonicalColor(str(fd.get('letter_color')))?.slice(0, 40) ?? null,
+    base_color: officialColor(str(fd.get('base_color'))),
+    key_color: officialColor(str(fd.get('key_color'))),
+    letter_color: officialColor(str(fd.get('letter_color'))),
     has_nfc: fd.get('has_nfc') === 'on',
     price,
     paid_amount: money('paid_amount'),

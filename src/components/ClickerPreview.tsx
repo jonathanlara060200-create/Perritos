@@ -1,4 +1,4 @@
-import { canonicalColor, colorHex, pieces, readableOn } from '@/lib/clickers'
+import { colorHex, officialColor, pieces, readableOn } from '@/lib/clickers'
 
 /** Puntito de color con el nombre al lado. Si no conocemos el color, solo muestra el nombre. */
 export function ColorDot({ name, label }: { name?: string | null; label: string }) {
@@ -7,7 +7,7 @@ export function ColorDot({ name, label }: { name?: string | null; label: string 
     <span className="inline-flex items-center gap-1.5 text-sm">
       {label && <span className="text-ink/60">{label}:</span>}
       {hex && <span className="inline-block h-4 w-4 shrink-0 rounded-full border border-black/15" style={{ background: hex }} />}
-      <b>{canonicalColor(name) ?? '—'}</b>
+      <b>{officialColor(name) ?? '—'}</b>
     </span>
   )
 }
