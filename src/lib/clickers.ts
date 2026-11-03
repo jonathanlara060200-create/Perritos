@@ -94,3 +94,42 @@ export const countPieces = (name?: string | null) => (name ? [...name].filter((c
 
 /** Precio automático del clicker: $ por cada letra (tecla) del nombre. */
 export const PRICE_PER_LETTER = 20
+
+export type PendingGroup = {
+  label: string
+  /** Piezas por imprimir en este color (bases: pedidos; teclas y letras: letras). */
+  n: number
+  /** Letras a imprimir y cuántas de cada una (vacío en bases). */
+  letters: [string, number][]
+  /** De quién son (sin repetir). */
+  who: string[]
+}
+
+/** Agrupa por color lo que falta por imprimir. perLetter = true cuenta cada letra del nombre; false cuenta 1 por pedido. */
+export function groupPending(
+  items: { color: string | null; name: string | null; who: string }[],
+  perLetter: boolean,
+): PendingGroup[] {
+  const m = new Map<string, PendingGroup & { map: Map<string, number> }>()
+  for (const it of items) {
+    const chars = perLetter ? [...(it.name ?? '')].filter((c) => c.trim() !== '').map((c) => c.toLocaleUpperCase('es-MX')) : []
+    if (perLetter && chars.length === 0) continue
+    const label = it.color?.trim() || 'Sin definir'
+    const k = colorKey(label)
+    let g = m.get(k)
+    if (!g) {
+      g = { label, n: 0, letters: [], who: [], map: new Map() }
+      m.set(k, g)
+    }
+    if (perLetter) {
+      g.n += chars.length
+      for (const c of chars) g.map.set(c, (g.map.get(c) ?? 0) + 1)
+    } else {
+      g.n += 1
+    }
+    if (!g.who.includes(it.who)) g.who.push(it.who)
+  }
+  return [...m.values()]
+    .map(({ map, ...g }) => ({ ...g, letters: [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es')) }))
+    .sort((a, b) => b.n - a.n)
+}

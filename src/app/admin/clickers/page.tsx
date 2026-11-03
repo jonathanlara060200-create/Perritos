@@ -9,6 +9,7 @@ import {
 } from '@/app/actions/clickers'
 import { ClickerFields, ColorDatalists } from '@/components/ClickerFields'
 import { ClickerPreview, ColorDot } from '@/components/ClickerPreview'
+import { PendingPrints } from '@/components/PendingPrints'
 import { ConfirmButton } from '@/components/ConfirmButton'
 import { Flash } from '@/components/Flash'
 import { SubmitButton } from '@/components/SubmitButton'
@@ -18,8 +19,7 @@ import {
   CUSTOM_STATUS_STYLE,
   ITEM_TYPE,
   PARTS,
-  colorKey,
-  countPieces,
+  groupPending,
 } from '@/lib/clickers'
 import { createClient } from '@/lib/supabase/server'
 import { TZ, formatMoney } from '@/lib/utils'
@@ -59,22 +59,6 @@ const BADGE = 'inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm fon
 
 function formatDay(d: string) {
   return new Date(`${d}T12:00:00Z`).toLocaleDateString('es-MX', { timeZone: 'UTC', day: 'numeric', month: 'short' })
-}
-
-/** Cuenta cuántas piezas faltan por color (solo clickers que siguen en trabajo). */
-function tally(rows: Row[], color: (r: Row) => string | null, pieces: (r: Row) => number, done: (r: Row) => boolean) {
-  const m = new Map<string, { label: string; n: number }>()
-  for (const r of rows) {
-    if (r.item_type !== 'clicker' || done(r)) continue
-    const n = pieces(r)
-    if (n === 0) continue
-    const label = color(r)?.trim() || 'Sin definir'
-    const k = colorKey(label)
-    const cur = m.get(k)
-    if (cur) cur.n += n
-    else m.set(k, { label, n })
-  }
-  return [...m.values()].sort((a, b) => b.n - a.n)
 }
 
 export default async function AdminClickers({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -117,9 +101,11 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
   ]
 
   // Qué falta por hacer, por color
-  const bases = tally(working, (r) => r.base_color, () => 1, (r) => r.base_done)
-  const keys = tally(working, (r) => r.key_color, (r) => countPieces(r.control_name), (r) => r.keys_done)
-  const letters = tally(working, (r) => r.letter_color, (r) => countPieces(r.control_name), (r) => r.letters_done)
+  const clickersInWork = working.filter((r) => r.item_type === 'clicker')
+  const who = (r: Row) => (r.control_name ? `${r.control_name.toUpperCase()} (${r.customer_name})` : r.customer_name)
+  const bases = groupPending(clickersInWork.filter((r) => !r.base_done).map((r) => ({ color: r.base_color, name: r.control_name, who: who(r) })), false)
+  const keys = groupPending(clickersInWork.filter((r) => !r.keys_done).map((r) => ({ color: r.key_color, name: r.control_name, who: who(r) })), true)
+  const letters = groupPending(clickersInWork.filter((r) => !r.letters_done).map((r) => ({ color: r.letter_color, name: r.control_name, who: who(r) })), true)
 
   // Filtros: pestañas Abiertos / Terminados / Todos. Siempre lo más reciente arriba.
   const ver = sp.ver === 'terminados' || sp.ver === 'todos' ? sp.ver : 'abiertos'
@@ -177,37 +163,11 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
         </form>
       </details>
 
-      {working.some((r) => r.item_type === 'clicker') && (
-        <section className="card space-y-3">
-          <h2 className="text-xl">Por hacer (clickers en proceso)</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {(
-              [
-                ['Bases', bases, ''],
-                ['Teclas', keys, ' pzas'],
-                ['Letras', letters, ' pzas'],
-              ] as [string, { label: string; n: number }[], string][]
-            ).map(([title, list, unit]) => {
-              return (
-                <div key={title}>
-                  <h3 className="mb-1 font-extrabold">{title}</h3>
-                  {list.length === 0 ? (
-                    <p className="muted">Todo listo ✓</p>
-                  ) : (
-                    <ul className="space-y-1 text-sm">
-                      {list.map((it) => (
-                        <li key={it.label} className="flex items-center justify-between gap-2">
-                          <ColorDot name={it.label} label="" />
-                          <b>{it.n}{unit}</b>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-          <p className="muted">Se cuenta lo que aún no marcas como hecho. Una letra = una tecla.</p>
+      {clickersInWork.length > 0 && (
+        <section className="card space-y-4">
+          <h2 className="text-xl">Por imprimir (clickers en proceso)</h2>
+          <PendingPrints bases={bases} keys={keys} letters={letters} />
+          <p className="muted">Se cuenta lo que aún no marcas como hecho (Base, Teclas, Letras) en cada pedido.</p>
         </section>
       )}
 
