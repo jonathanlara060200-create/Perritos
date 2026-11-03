@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import {
   createCustomOrder,
   deleteCustomOrder,
@@ -98,7 +99,10 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
 
   const today = new Date().toLocaleDateString('en-CA', { timeZone: TZ })
   const isOpen = (r: Row) => ACTIVE_STATUSES.includes(r.status)
-  const open = all.filter(isOpen)
+  // Terminado = cancelado, o entregado y pagado por completo. Entregado con saldo sigue a la vista para cobrarlo.
+  const isDone = (r: Row) => r.status === 'cancelled' || (r.status === 'delivered' && Number(r.paid_amount) >= Number(r.price))
+  const open = all.filter((r) => !isDone(r))
+  const doneCount = all.length - open.length
   const working = all.filter((r) => r.status === 'pending' || r.status === 'in_progress')
 
   // Resumen de dinero (los cancelados no cuentan)
@@ -117,12 +121,12 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
   const keys = tally(working, (r) => r.key_color, (r) => countPieces(r.control_name), (r) => r.keys_done)
   const letters = tally(working, (r) => r.letter_color, (r) => countPieces(r.control_name), (r) => r.letters_done)
 
-  // Filtros
-  const ver = sp.ver === 'cerrados' || sp.ver === 'todos' ? sp.ver : 'activos'
+  // Filtros: pestañas Abiertos / Terminados / Todos. Siempre lo más reciente arriba.
+  const ver = sp.ver === 'terminados' || sp.ver === 'todos' ? sp.ver : 'abiertos'
   const tipo = sp.tipo && sp.tipo in ITEM_TYPE ? sp.tipo : ''
   const q = sp.q?.trim().toLowerCase() ?? ''
   const rows = all
-    .filter((r) => (ver === 'todos' ? true : ver === 'activos' ? isOpen(r) : !isOpen(r)))
+    .filter((r) => (ver === 'todos' ? true : ver === 'abiertos' ? !isDone(r) : isDone(r)))
     .filter((r) => (tipo ? r.item_type === tipo : true))
     .filter((r) =>
       q
@@ -130,14 +134,24 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
         : true,
     )
     .sort((a, b) => {
-      if (ver === 'activos') {
-        // Lo que se entrega primero arriba; sin fecha, al final.
-        if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
-        if (a.due_date) return -1
-        if (b.due_date) return 1
-      }
+      // En "Todos" los terminados se van hasta abajo.
+      if (ver === 'todos' && isDone(a) !== isDone(b)) return isDone(a) ? 1 : -1
       return b.created_at.localeCompare(a.created_at)
     })
+
+  const tabHref = (v: string) => {
+    const u = new URLSearchParams()
+    if (v !== 'abiertos') u.set('ver', v)
+    if (sp.q) u.set('q', sp.q)
+    if (tipo) u.set('tipo', tipo)
+    const s = u.toString()
+    return `/admin/clickers${s ? `?${s}` : ''}`
+  }
+  const tabs: [string, string][] = [
+    ['abiertos', `Abiertos (${open.length})`],
+    ['terminados', `Terminados (${doneCount})`],
+    ['todos', 'Todos'],
+  ]
 
   return (
     <div className="space-y-6">
@@ -197,6 +211,18 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
         </section>
       )}
 
+      <nav className="flex flex-wrap gap-2" aria-label="Vista de pedidos">
+        {tabs.map(([v, label]) => (
+          <Link
+            key={v}
+            href={tabHref(v)}
+            className={`rounded-xl px-4 py-2 text-sm font-bold ${ver === v ? 'bg-axo-500 text-white' : 'bg-axo-100 text-axo-600 hover:bg-axo-200'}`}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
+
       <form className="flex flex-col gap-3 sm:flex-row">
         <input name="q" defaultValue={sp.q ?? ''} placeholder="Buscar: cliente, nombre del control…" className="input" />
         <select name="tipo" defaultValue={tipo} className="input sm:max-w-48">
@@ -205,11 +231,7 @@ export default async function AdminClickers({ searchParams }: { searchParams: Pr
             <option key={k} value={k}>{l}</option>
           ))}
         </select>
-        <select name="ver" defaultValue={ver} className="input sm:max-w-44">
-          <option value="activos">Abiertos</option>
-          <option value="cerrados">Entregados / cancelados</option>
-          <option value="todos">Todos</option>
-        </select>
+        <input type="hidden" name="ver" value={ver} />
         <button className="btn-primary">Filtrar</button>
       </form>
 
