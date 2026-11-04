@@ -1,93 +1,77 @@
-// Siluetas y charms dibujados como SVG simple. Cuando tengas tus propias siluetas se reemplazan aquí.
+// Siluetas de la placa dibujadas como SVG simple (caja de 100×100). Son marcadores de posición:
+// cuando tengas tus siluetas definitivas se reemplazan aquí, una por id (personalizada, navidad, normal).
 
-/** Formas en una caja de 100×100. */
-export function ShapeArt({ id, fill }: { id: string; fill: string }) {
-  switch (id) {
-    case 'corazon':
-      return <path d="M50 92 C12 62 4 40 4 27 C4 13 15 5 28 5 C38 5 46 10 50 19 C54 10 62 5 72 5 C85 5 96 13 96 27 C96 40 88 62 50 92 Z" fill={fill} />
-    case 'hueso':
-      return (
-        <g fill={fill}>
-          <rect x="22" y="36" width="56" height="28" rx="6" />
-          <circle cx="20" cy="34" r="13" />
-          <circle cx="20" cy="66" r="13" />
-          <circle cx="80" cy="34" r="13" />
-          <circle cx="80" cy="66" r="13" />
+const HOLE = '#F2F7FD'
+
+/** Perrito sentado sobre un hueso. El nombre se escribe sobre el hueso (centro x=50, y≈86). */
+function Dog({ fill, ink, hat = false, question = false }: { fill: string; ink: string; hat?: boolean; question?: boolean }) {
+  return (
+    <g>
+      {/* hueso (donde va el nombre) */}
+      <g fill={fill}>
+        <rect x="19" y="81" width="62" height="11" />
+        <circle cx="19" cy="81.5" r="6" />
+        <circle cx="19" cy="91.5" r="6" />
+        <circle cx="81" cy="81.5" r="6" />
+        <circle cx="81" cy="91.5" r="6" />
+      </g>
+      <rect x="19" y="81" width="62" height="11" fill="rgba(0,0,0,.08)" />
+
+      {/* cola */}
+      <path d="M72 68 C87 68 92 56 86 47" fill="none" stroke={fill} strokeWidth="6" strokeLinecap="round" />
+      {/* muslos, cuerpo y patas */}
+      <ellipse cx="31" cy="63" rx="10" ry="13" fill={fill} />
+      <ellipse cx="69" cy="63" rx="10" ry="13" fill={fill} />
+      <path d="M36 40 C31 52 30 62 33 72 L67 72 C70 62 69 52 64 40 Z" fill={fill} />
+      <rect x="37" y="58" width="9" height="17" rx="4.5" fill={fill} />
+      <rect x="54" y="58" width="9" height="17" rx="4.5" fill={fill} />
+      <ellipse cx="41.5" cy="75" rx="7" ry="3.6" fill={fill} />
+      <ellipse cx="58.5" cy="75" rx="7" ry="3.6" fill={fill} />
+      {/* pecho claro */}
+      <ellipse cx="50" cy="56" rx="9" ry="13" fill="rgba(255,255,255,.35)" />
+
+      {/* orejas caídas */}
+      <path d="M34 18 C24 12 16 22 18 37 C20 42 28 41 32 34 Z" fill={fill} />
+      <path d="M66 18 C76 12 84 22 82 37 C80 42 72 41 68 34 Z" fill={fill} />
+      <path d="M31 24 C25 22 21 28 22 36 C24 38 28 37 30 33 Z" fill="rgba(0,0,0,.16)" />
+      <path d="M69 24 C75 22 79 28 78 36 C76 38 72 37 70 33 Z" fill="rgba(0,0,0,.16)" />
+      {/* cabeza y cara */}
+      <ellipse cx="50" cy="28" rx="18" ry="16" fill={fill} />
+      <ellipse cx="50" cy="34" rx="9.5" ry="7.5" fill="rgba(255,255,255,.45)" />
+      <circle cx="43" cy="26" r="2.3" fill={ink} />
+      <circle cx="57" cy="26" r="2.3" fill={ink} />
+      <ellipse cx="50" cy="32" rx="3.6" ry="2.6" fill={ink} />
+      <path d="M50 34.5 L50 37 M45.5 38 C48 40.5 52 40.5 54.5 38" fill="none" stroke={ink} strokeWidth="1.3" strokeLinecap="round" />
+
+      {question && (
+        <text x="50" y="66" textAnchor="middle" fontSize="24" fontWeight="900" fill={ink} fontFamily="Arial, Helvetica, sans-serif">
+          ?
+        </text>
+      )}
+
+      {hat ? (
+        <g>
+          {/* gorro navideño */}
+          <path d="M32 12.5 C32 5 40 0.5 50 0.5 C58 0.5 65 4 70 10 C65 8.5 61 8.5 58 9.5 C49 11.5 41 12 32 12.5 Z" fill="#D62839" />
+          <rect x="29" y="10.5" width="42" height="8" rx="4" fill="#FFFFFF" stroke="rgba(0,0,0,.2)" strokeWidth=".8" />
+          <circle cx="72.5" cy="8" r="4.8" fill="#FFFFFF" stroke="rgba(0,0,0,.2)" strokeWidth=".8" />
+          <circle cx="72.5" cy="8" r="1.8" fill={HOLE} stroke="rgba(0,0,0,.15)" strokeWidth=".6" />
         </g>
-      )
-    case 'huella':
-      return (
-        <g fill={fill}>
-          <ellipse cx="50" cy="66" rx="24" ry="20" />
-          <ellipse cx="22" cy="42" rx="10" ry="13" transform="rotate(-20 22 42)" />
-          <ellipse cx="40" cy="26" rx="10" ry="14" transform="rotate(-6 40 26)" />
-          <ellipse cx="60" cy="26" rx="10" ry="14" transform="rotate(6 60 26)" />
-          <ellipse cx="78" cy="42" rx="10" ry="13" transform="rotate(20 78 42)" />
-        </g>
-      )
-    case 'nube':
-      return (
-        <g fill={fill}>
-          <rect x="12" y="46" width="76" height="34" rx="17" />
-          <circle cx="36" cy="46" r="20" />
-          <circle cx="60" cy="40" r="25" />
-          <circle cx="76" cy="54" r="15" />
-        </g>
-      )
-    case 'mascota':
-      return (
-        <g fill={fill}>
-          <circle cx="50" cy="56" r="33" />
-          <ellipse cx="22" cy="38" rx="12" ry="22" transform="rotate(14 22 38)" />
-          <ellipse cx="78" cy="38" rx="12" ry="22" transform="rotate(-14 78 38)" />
-        </g>
-      )
-    default:
-      return <circle cx="50" cy="50" r="45" fill={fill} />
-  }
+      ) : (
+        <circle cx="50" cy="16.5" r="2.7" fill={HOLE} stroke="rgba(0,0,0,.15)" strokeWidth=".6" />
+      )}
+    </g>
+  )
 }
 
-/** Charms en una caja de 24×24. */
-export function CharmArt({ id, fill }: { id: string; fill: string }) {
+/** Silueta por id, en una caja de 100×100. `ink` es el color de los detalles (ojos, nariz, signo). */
+export function ShapeArt({ id, fill, ink = '#371A16' }: { id: string; fill: string; ink?: string }) {
   switch (id) {
-    case 'corazon':
-      return <path d="M12 21 C3 14 2 9 2 7 C2 4 4 2 7 2 C9 2 11 3 12 5 C13 3 15 2 17 2 C20 2 22 4 22 7 C22 9 21 14 12 21Z" fill={fill} />
-    case 'estrella':
-      return <path d="M12 2l3 6.5 7 .9-5.1 4.8 1.3 7-6.2-3.4-6.2 3.4 1.3-7L2 9.4l7-.9z" fill={fill} />
-    case 'luna':
-      return <path d="M20 14.5A9 9 0 0 1 9.5 4 9 9 0 1 0 20 14.5z" fill={fill} />
-    case 'rayo':
-      return <path d="M13 2L4 14h6l-1 8 9-12h-6z" fill={fill} />
-    case 'hueso':
-      return (
-        <g fill={fill}>
-          <rect x="6" y="9.5" width="12" height="5" rx="2" />
-          <circle cx="5" cy="9" r="3" />
-          <circle cx="5" cy="15" r="3" />
-          <circle cx="19" cy="9" r="3" />
-          <circle cx="19" cy="15" r="3" />
-        </g>
-      )
-    case 'huella':
-      return (
-        <g fill={fill}>
-          <ellipse cx="12" cy="16" rx="5" ry="4.2" />
-          <circle cx="5.5" cy="10.5" r="2.2" />
-          <circle cx="9.5" cy="6.5" r="2.2" />
-          <circle cx="14.5" cy="6.5" r="2.2" />
-          <circle cx="18.5" cy="10.5" r="2.2" />
-        </g>
-      )
-    case 'flor':
-      return (
-        <g fill={fill}>
-          {[0, 72, 144, 216, 288].map((a) => (
-            <ellipse key={a} cx="12" cy="6.5" rx="3.6" ry="5" transform={`rotate(${a} 12 12)`} />
-          ))}
-          <circle cx="12" cy="12" r="2.4" fill="#fff" opacity=".75" />
-        </g>
-      )
+    case 'personalizada':
+      return <Dog fill={fill} ink={ink} question />
+    case 'navidad':
+      return <Dog fill={fill} ink={ink} hat />
     default:
-      return null
+      return <Dog fill={fill} ink={ink} />
   }
 }

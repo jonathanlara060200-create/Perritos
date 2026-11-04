@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { getProfile, requireUser } from '@/lib/auth'
 import { go } from '@/lib/flash'
 import { createClient } from '@/lib/supabase/server'
-import { CHARM_IDS, FONT_IDS, SHAPE_IDS, SIZE_IDS } from '@/lib/plate'
+import { FONT_IDS, SHAPE_IDS, SIZE_IDS } from '@/lib/plate'
 import { createPreference, mpEnabled } from '@/lib/mercadopago'
 import { siteUrl, str } from '@/lib/utils'
 
@@ -18,10 +18,9 @@ const schema = z.object({
   neighborhood: z.string().min(2, 'Escribe la colonia.').max(100),
   city: z.string().min(2, 'Escribe la ciudad.').max(100),
   state: z.string().min(2, 'Escribe el estado.').max(100),
-  silhouette: z.enum(SHAPE_IDS).default('mascota'),
+  silhouette: z.enum(SHAPE_IDS).default('normal'),
   size_code: z.enum(SIZE_IDS).default('M'),
   font: z.enum(FONT_IDS).default('fredoka'),
-  charm: z.enum(CHARM_IDS).default('none'),
   zip: z.string().regex(/^\d{5}$/, 'El código postal debe tener 5 dígitos.'),
 })
 
@@ -40,7 +39,6 @@ export async function createOrder(fd: FormData) {
     silhouette: str(fd.get('silhouette')) ?? undefined,
     size_code: str(fd.get('size_code')) ?? undefined,
     font: str(fd.get('font')) ?? undefined,
-    charm: str(fd.get('charm')) ?? undefined,
   })
   const back = `/orders/new?pet=${typeof fd.get('pet_id') === 'string' ? fd.get('pet_id') : ''}`
   if (!parsed.success) go(back, 'error', parsed.error.issues[0].message)
@@ -58,7 +56,6 @@ export async function createOrder(fd: FormData) {
     p_silhouette: v.silhouette,
     p_size_code: v.size_code,
     p_font: v.font,
-    p_charm: v.charm === 'none' ? null : v.charm,
   })
   if (error || !orderId) go(back, 'error', 'No pudimos crear tu pedido. Revisa los datos e intenta de nuevo.')
 

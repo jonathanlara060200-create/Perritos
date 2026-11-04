@@ -1,9 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { CharmArt, ShapeArt } from '@/components/plate-shapes'
+import { ShapeArt } from '@/components/plate-shapes'
 import { PLATE_FONT_FAMILY } from '@/lib/plate-fonts'
-import { CHARMS, FONTS, SHAPES, SIZES, labelOf } from '@/lib/plate'
+import { FONTS, SHAPES, SIZES, labelOf } from '@/lib/plate'
 import { cn, formatMoney } from '@/lib/utils'
 
 export type DesignerProduct = {
@@ -31,10 +31,9 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
   const [productId, setProductId] = useState(products[0]?.id ?? '')
   const product = products.find((p) => p.id === productId) ?? products[0]
   const [variantId, setVariantId] = useState(product?.variants[0]?.id ?? '')
-  const [shape, setShape] = useState<string>('mascota')
+  const [shape, setShape] = useState<string>('normal')
   const [size, setSize] = useState<string>('M')
   const [font, setFont] = useState<string>('fredoka')
-  const [charm, setCharm] = useState<string>('none')
   const [name, setName] = useState('')
 
   const variant = product?.variants.find((v) => v.id === variantId) ?? product?.variants[0]
@@ -42,11 +41,13 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
   const ink = textColorFor(color)
   const scale = size === 'S' ? 0.78 : size === 'L' ? 1 : 0.89
   const shown = (name.trim() || 'Nombre').slice(0, 14)
-  const fontSize = Math.max(9, Math.min(20, 150 / Math.max(shown.length, 5)))
+  // El nombre va sobre el hueso, en la parte baja de la silueta.
+  const fontSize = Math.max(6, Math.min(14 * scale, (52 * scale) / (Math.max(shown.length, 4) * 0.55)))
+  const nameY = 66 + 36.5 * scale
   const price = product ? Number(product.base_price) + Number(variant?.price_delta ?? 0) : 0
   const summary = useMemo(
-    () => [labelOf(SHAPES, shape), labelOf(SIZES, size), variant?.color_name, labelOf(FONTS, font), charm === 'none' ? 'sin charm' : labelOf(CHARMS, charm)].join(' · '),
-    [shape, size, variant, font, charm],
+    () => [labelOf(SHAPES, shape), labelOf(SIZES, size), variant?.color_name, labelOf(FONTS, font)].join(' · '),
+    [shape, size, variant, font],
   )
 
   if (!product) return <p className="muted">Por ahora no hay productos disponibles.</p>
@@ -63,19 +64,17 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
       <input type="hidden" name="silhouette" value={shape} />
       <input type="hidden" name="size_code" value={size} />
       <input type="hidden" name="font" value={font} />
-      <input type="hidden" name="charm" value={charm} />
 
       {/* Vista previa */}
       <section className="card sticky top-16 z-10 space-y-2 !p-4">
         <p className="text-sm font-extrabold uppercase tracking-wide text-ink/60">Tu placa</p>
         <svg viewBox="0 0 140 140" className="mx-auto h-52 w-52" role="img" aria-label={`Vista previa: ${summary}`}>
           <g transform={`translate(${70 - 50 * scale} ${66 - 50 * scale}) scale(${scale})`}>
-            <ShapeArt id={shape} fill={color} />
+            <ShapeArt id={shape} fill={color} ink={ink} />
           </g>
-          <circle cx="70" cy={66 - 50 * scale + 5} r="3.2" fill="#F2F7FD" stroke="rgba(0,0,0,.15)" />
           <text
             x="70"
-            y={66 + fontSize * 0.34}
+            y={nameY + fontSize * 0.34}
             textAnchor="middle"
             fontSize={fontSize}
             fill={ink}
@@ -83,15 +82,6 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
           >
             {shown}
           </text>
-          {charm !== 'none' && (
-            <g transform="translate(88 98)">
-              <line x1="12" y1="-6" x2="12" y2="2" stroke="#9AA3AD" strokeWidth="1.5" />
-              <circle cx="12" cy="-7" r="2" fill="none" stroke="#9AA3AD" strokeWidth="1.5" />
-              <g transform="translate(0 2) scale(1)">
-                <CharmArt id={charm} fill={textColorFor(color) === '#FFFFFF' ? '#FFFFFF' : '#371A16'} />
-              </g>
-            </g>
-          )}
         </svg>
         <p className="text-center text-sm font-bold">{summary}</p>
         <p className="text-center text-2xl font-extrabold text-axo-500">{formatMoney(price, product.currency)}</p>
@@ -121,15 +111,24 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
       )}
 
       <section className="card space-y-3">
-        <h2 className="text-xl">Forma</h2>
-        <div className="flex flex-wrap gap-2">
+        <h2 className="text-xl">Silueta</h2>
+        <div className="grid gap-2 sm:grid-cols-3">
           {SHAPES.map((s) => (
-            <button key={s.id} type="button" aria-pressed={shape === s.id} onClick={() => setShape(s.id)} className={cn(chipBase, shape === s.id ? chipOn : chipOff)}>
-              {s.label}
+            <button
+              key={s.id}
+              type="button"
+              aria-pressed={shape === s.id}
+              onClick={() => setShape(s.id)}
+              className={cn('flex flex-col items-center gap-1 rounded-3xl border-2 p-3 text-center transition', shape === s.id ? chipOn : chipOff)}
+            >
+              <svg viewBox="-4 -6 108 110" className="h-24 w-24" aria-hidden="true">
+                <ShapeArt id={s.id} fill={color} ink={ink} />
+              </svg>
+              <span className="font-extrabold">{s.label}</span>
             </button>
           ))}
         </div>
-        {shape === 'mascota' && <p className="muted">Hacemos la silueta con la foto de tu mascota. En la vista previa se ve una silueta de ejemplo.</p>}
+        <p className="muted">{SHAPES.find((s) => s.id === shape)?.hint}</p>
       </section>
 
       <section className="card space-y-3">
@@ -181,22 +180,6 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
           ))}
         </div>
         <p className="muted">Tipografía: {labelOf(FONTS, font)}</p>
-      </section>
-
-      <section className="card space-y-3">
-        <h2 className="text-xl">Charm</h2>
-        <div className="flex flex-wrap gap-2">
-          {CHARMS.map((c) => (
-            <button key={c.id} type="button" aria-pressed={charm === c.id} onClick={() => setCharm(c.id)} className={cn(chipBase, 'flex items-center gap-2', charm === c.id ? chipOn : chipOff)}>
-              {c.id !== 'none' && (
-                <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-                  <CharmArt id={c.id} fill="#371A16" />
-                </svg>
-              )}
-              {c.label}
-            </button>
-          ))}
-        </div>
       </section>
     </div>
   )

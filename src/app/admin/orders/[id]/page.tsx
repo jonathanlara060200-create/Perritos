@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CHARMS, FONTS, SHAPES, SIZES, labelOf } from '@/lib/plate'
+import { ALL_SHAPES, FONTS, SHAPES, SIZES, labelOf } from '@/lib/plate'
 import { notFound } from 'next/navigation'
 import { addNote, assignTagToItem, registerPayment, saveDesign, updateOrder } from '@/app/actions/admin'
 import { Flash } from '@/components/Flash'
@@ -20,7 +20,6 @@ type Design = {
   engraved_name: string | null
   size_code: string | null
   font: string | null
-  charm: string | null
   dtf_uv: boolean
   notes: string | null
   approved_at: string | null
@@ -174,10 +173,18 @@ export default async function AdminOrder({
               <form action={saveDesign.bind(null, design.id, id)} className="space-y-3 border-t border-axo-100 pt-4">
                 <h3 className="font-extrabold">Datos de fabricación</h3>
                 <p className="rounded-xl bg-butter/50 p-2 text-sm font-bold">
-                  Pidió: forma {labelOf(SHAPES, design.silhouette_type)} · talla {labelOf(SIZES, design.size_code)} · tipografía {labelOf(FONTS, design.font)} · charm {design.charm ? labelOf(CHARMS, design.charm) : 'sin charm'}
+                  Pidió: silueta {labelOf(ALL_SHAPES, design.silhouette_type)} · talla {labelOf(SIZES, design.size_code)} · tipografía {labelOf(FONTS, design.font)}
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <input name="silhouette_type" defaultValue={design.silhouette_type ?? ''} placeholder="Tipo de silueta" className="input col-span-2 sm:col-span-1" />
+                  <select name="silhouette_type" defaultValue={design.silhouette_type ?? ''} className="input col-span-2 sm:col-span-1" aria-label="Silueta">
+                    <option value="">Silueta…</option>
+                    {SHAPES.map((s) => (
+                      <option key={s.id} value={s.id}>{s.label}</option>
+                    ))}
+                    {design.silhouette_type && !SHAPES.some((s) => s.id === design.silhouette_type) && (
+                      <option value={design.silhouette_type}>{labelOf(ALL_SHAPES, design.silhouette_type)}</option>
+                    )}
+                  </select>
                   <input name="width_mm" inputMode="decimal" defaultValue={design.width_mm ?? ''} placeholder="Ancho mm" className="input" />
                   <input name="height_mm" inputMode="decimal" defaultValue={design.height_mm ?? ''} placeholder="Alto mm" className="input" />
                   <input name="thickness_mm" inputMode="decimal" defaultValue={design.thickness_mm ?? ''} placeholder="Grosor mm" className="input" />
