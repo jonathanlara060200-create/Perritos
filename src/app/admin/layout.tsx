@@ -7,6 +7,7 @@ const NAV = [
   ['/admin/orders', 'Pedidos'],
   ['/admin/clickers', 'Clickers y llaveros'],
   ['/admin/calculadora', 'Calculadora 3D'],
+  ['/admin/hidratacion', '💧 Hidratación'],
   ['/admin/pets', 'Mascotas'],
   ['/admin/tags', 'Placas · QR · NFC'],
   ['/admin/lost', 'Perdidas'],

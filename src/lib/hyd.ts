@@ -14,6 +14,14 @@ export type HydLog = { id: string; amount_ml: number; consumed_at: string; sourc
 export const QUICK_ML = [100, 150, 250, 350, 500, 750]
 export const GOALS = [1500, 2000, 2500, 3000]
 
+export const ACHIEVEMENTS: { code: string; label: string; icon: string; hint: string }[] = [
+  { code: "first_log", label: "Primer registro", icon: "🌱", hint: "Registra tu primera toma." },
+  { code: "goal_reached", label: "Objetivo del día", icon: "🎯", hint: "Llega a tu objetivo diario." },
+  { code: "streak_3", label: "3 días seguidos", icon: "🔥", hint: "Registra 3 días consecutivos." },
+  { code: "streak_7", label: "7 días de constancia", icon: "🏅", hint: "Registra 7 días consecutivos." },
+  { code: "first_month", label: "Primer mes", icon: "🏆", hint: "Cumple un mes usando la plataforma." },
+]
+
 export const fmt = (n: number) => new Intl.NumberFormat("es-MX").format(n)
 
 /** Fecha local (YYYY-MM-DD) de un instante en la zona horaria del usuario. */
@@ -59,7 +67,11 @@ export async function requireHydUser() {
   if (!profile) {
     await supabase.rpc("hyd_ensure_profile")
     const meta = (user.user_metadata?.hyd ?? {}) as Record<string, unknown>
-    const patch: Record<string, number> = {}
+    const patch: Record<string, number | string> = {}
+    const hhmm = (v: unknown) => (typeof v === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : null)
+    if (hhmm(meta.wake_time)) patch.wake_time = hhmm(meta.wake_time)!
+    if (hhmm(meta.sleep_time)) patch.sleep_time = hhmm(meta.sleep_time)!
+    if (meta.reminders === true) await supabase.from("hyd_reminder_prefs").update({ enabled: true }).eq("user_id", user.id)
     const bottle = clamp(meta.bottle_ml, 100, 5000)
     const goal = clamp(meta.daily_goal_ml, 500, 10000)
     if (bottle) patch.bottle_ml = bottle

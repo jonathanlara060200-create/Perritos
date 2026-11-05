@@ -33,6 +33,7 @@ export default async function Home() {
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
         <Logo />
         <nav className="flex items-center gap-2">
+          <Link href="/hidratacion" className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-denim-700 hover:bg-axo-100 sm:inline-block">💧 Hidratación</Link>
           <Link href="/login" className="rounded-xl px-3 py-2 text-sm font-bold hover:bg-axo-100">Entrar</Link>
           <Link href="/register" className="btn-primary btn-sm">Crear cuenta</Link>
         </nav>

@@ -1,0 +1,17 @@
+name: Recordatorios de hidratación
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # GitHub puede retrasarlo unos minutos
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al endpoint de recordatorios
+        env:
+          URL: ${{ secrets.HYD_CRON_URL }}
+          SECRET: ${{ secrets.HYD_CRON_SECRET }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$SECRET" ]; then echo "Sin configurar (HYD_CRON_URL / HYD_CRON_SECRET). Nada que hacer."; exit 0; fi
+          curl -fsS -X POST -H "Authorization: Bearer $SECRET" "$URL"

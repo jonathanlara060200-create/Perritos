@@ -2,6 +2,7 @@ import Link from "next/link"
 
 export const metadata = {
   title: { default: "Hidratación", template: "%s · Hidratación AJolote" },
+  manifest: "/hidratacion.webmanifest",
   description: "Registra tu agua, sigue tu progreso y mejora tus hábitos. Se abre con un escaneo de tu llavero NFC.",
 }
 

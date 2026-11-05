@@ -34,6 +34,14 @@ export default async function Registro({ searchParams }: { searchParams: Promise
           </div>
           <input name="goal_custom" type="number" inputMode="numeric" min={500} max={10000} placeholder="Si eliges personalizado, escribe los ml" className="input mt-2" />
         </fieldset>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className="label" htmlFor="wake_time">Normalmente despierto a las</label><input id="wake_time" name="wake_time" type="time" defaultValue="07:00" className="input" /></div>
+          <div><label className="label" htmlFor="sleep_time">Normalmente duermo a las</label><input id="sleep_time" name="sleep_time" type="time" defaultValue="23:00" className="input" /></div>
+        </div>
+        <label className="flex items-start gap-2 text-sm text-slate-700">
+          <input type="checkbox" name="reminders" defaultChecked className="mt-1" />
+          <span>Quiero recibir recordatorios suaves (los activas con el permiso de tu navegador y puedes cambiarlos cuando quieras).</span>
+        </label>
         <button className="w-full rounded-2xl bg-[#1E7FD8] py-3 font-bold text-white">Crear cuenta</button>
       </form>
       <p className="mt-4 text-sm text-slate-600">¿Ya tienes cuenta? <Link className="font-semibold text-[#1E7FD8]" href="/hidratacion/login">Inicia sesión</Link></p>

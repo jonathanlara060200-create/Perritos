@@ -1,0 +1,16 @@
+{
+  "name": "Hidratación · AJolote",
+  "short_name": "Hidratación",
+  "description": "Registra tu agua y mejora tus hábitos de hidratación.",
+  "start_url": "/hidratacion/dashboard",
+  "scope": "/hidratacion/",
+  "display": "standalone",
+  "background_color": "#EAF4FB",
+  "theme_color": "#0B3C5D",
+  "lang": "es-MX",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

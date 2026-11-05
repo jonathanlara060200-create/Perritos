@@ -16,7 +16,7 @@ export default async function AdminHidratacion({ searchParams }: { searchParams:
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-4">
-      <h1 className="text-2xl font-bold">Llaveros de hidratación</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2"><h1 className="text-2xl font-bold">Llaveros de hidratación</h1><a href="/admin/hidratacion/avisos" className="rounded-lg bg-sky-50 px-3 py-1 text-sm font-semibold">Configurar avisos (push)</a></div>
       <Flash sp={sp} />
       <CreateDevice />
       <ul className="space-y-2">
