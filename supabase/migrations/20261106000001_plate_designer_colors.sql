@@ -4,8 +4,31 @@
 -- · Diseños: personalizada (A), misteriosa (B), navidad (C), huesito (D).
 -- · Tipografías: clasica, moderna, redondeada, divertida, elegante.
 -- Se reemplaza create_order (una sola función, con p_letter_color al final).
--- Requiere official_clicker_color() de 20261103000001_clicker_colors.sql.
+-- Es autosuficiente: crea official_clicker_color() si todavía no existe (misma definición que 20261103000001).
 -- =====================================================================
+
+create or replace function public.official_clicker_color(c text)
+returns text language sql immutable as $$
+  select case regexp_replace(lower(btrim(c)), '\s+', ' ', 'g')
+    when 'azul cielo' then 'Azul cielo'
+    when 'azul'       then 'Azul cielo'
+    when 'azul claro' then 'Azul cielo'
+    when 'celeste'    then 'Azul cielo'
+    when 'rosa bajito' then 'Rosa bajito'
+    when 'rosa'        then 'Rosa bajito'
+    when 'rosa claro'  then 'Rosa bajito'
+    when 'rosa pastel' then 'Rosa bajito'
+    when 'rosita'      then 'Rosa bajito'
+    when 'amarillo'   then 'Amarillo'
+    when 'morado'   then 'Morado'
+    when 'lila'     then 'Morado'
+    when 'lavanda'  then 'Morado'
+    when 'violeta'  then 'Morado'
+    when 'purpura'  then 'Morado'
+    when 'púrpura'  then 'Morado'
+    else null
+  end
+$$;
 
 alter table public.tag_designs add column if not exists letter_color text;
 
