@@ -100,6 +100,7 @@ export async function saveDesign(designId: string, orderId: string, fd: FormData
       height_mm: num('height_mm'),
       thickness_mm: num('thickness_mm'),
       pla_color: str(fd.get('pla_color')),
+      letter_color: str(fd.get('letter_color')),
       engraved_name: str(fd.get('engraved_name'))?.slice(0, 40) ?? null,
       dtf_uv: fd.get('dtf_uv') === 'on',
       notes: str(fd.get('notes')),

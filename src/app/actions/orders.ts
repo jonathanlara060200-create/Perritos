@@ -5,7 +5,8 @@ import { z } from 'zod'
 import { getProfile, requireUser } from '@/lib/auth'
 import { go } from '@/lib/flash'
 import { createClient } from '@/lib/supabase/server'
-import { FONT_IDS, SHAPE_IDS, SIZE_IDS } from '@/lib/plate'
+import { DESIGN_SPECS } from '@/lib/plate-art'
+import { FILAMENT_NAMES, FONT_IDS, MAX_NAME_LENGTH, SHAPE_IDS, SIZE_IDS, filamentOf } from '@/lib/plate'
 import { createPreference, mpEnabled } from '@/lib/mercadopago'
 import { siteUrl, str } from '@/lib/utils'
 
@@ -18,9 +19,12 @@ const schema = z.object({
   neighborhood: z.string().min(2, 'Escribe la colonia.').max(100),
   city: z.string().min(2, 'Escribe la ciudad.').max(100),
   state: z.string().min(2, 'Escribe el estado.').max(100),
-  silhouette: z.enum(SHAPE_IDS).default('normal'),
+  silhouette: z.enum(SHAPE_IDS).default('circulo'),
   size_code: z.enum(SIZE_IDS).default('M'),
-  font: z.enum(FONT_IDS).default('fredoka'),
+  font: z.enum(FONT_IDS).default('redondeada'),
+  letter_color: z.enum(FILAMENT_NAMES, { message: 'Elige uno de los 4 colores de letra disponibles.' }),
+  zone_2: z.enum(FILAMENT_NAMES, { message: 'Elige uno de los 4 colores disponibles para cada parte.' }),
+  zone_3: z.enum(FILAMENT_NAMES).optional(),
   zip: z.string().regex(/^\d{5}$/, 'El código postal debe tener 5 dígitos.'),
 })
 
@@ -39,16 +43,24 @@ export async function createOrder(fd: FormData) {
     silhouette: str(fd.get('silhouette')) ?? undefined,
     size_code: str(fd.get('size_code')) ?? undefined,
     font: str(fd.get('font')) ?? undefined,
+    letter_color: filamentOf(str(fd.get('letter_color')))?.name,
+    zone_2: filamentOf(str(fd.get('zone_2')))?.name,
+    zone_3: filamentOf(str(fd.get('zone_3')))?.name,
   })
   const back = `/orders/new?pet=${typeof fd.get('pet_id') === 'string' ? fd.get('pet_id') : ''}`
   if (!parsed.success) go(back, 'error', parsed.error.issues[0].message)
   const v = parsed.data
+  const spec = DESIGN_SPECS[v.silhouette]
+  if (spec.zones.some((z) => z.key === 'z3') && !v.zone_3) go(back, 'error', 'Elige el color de todas las partes de la placa.')
+  if (v.letter_color === (spec.lettersOn === 'z2' ? v.zone_2 : null)) go(back, 'error', 'Las letras no pueden ser del mismo color que el fondo del nombre.')
+  const engraved = str(fd.get('engraved_name'))
+  if (engraved && engraved.length > MAX_NAME_LENGTH) go(back, 'error', `El nombre en la placa puede tener hasta ${MAX_NAME_LENGTH} letras.`)
 
   const supabase = await createClient()
   const { data: orderId, error } = await supabase.rpc('create_order', {
     p_pet_id: v.pet_id,
     p_variant_id: v.variant_id,
-    p_engraved_name: str(fd.get('engraved_name')),
+    p_engraved_name: engraved,
     p_shipping_name: v.shipping_name,
     p_shipping_phone: v.shipping_phone,
     p_shipping_address: { street: v.street, neighborhood: v.neighborhood, city: v.city, state: v.state, zip: v.zip },
@@ -56,6 +68,8 @@ export async function createOrder(fd: FormData) {
     p_silhouette: v.silhouette,
     p_size_code: v.size_code,
     p_font: v.font,
+    p_letter_color: v.letter_color,
+    p_zone_colors: { z2: v.zone_2, ...(spec.zones.some((z) => z.key === 'z3') && v.zone_3 ? { z3: v.zone_3 } : {}) },
   })
   if (error || !orderId) go(back, 'error', 'No pudimos crear tu pedido. Revisa los datos e intenta de nuevo.')
 
