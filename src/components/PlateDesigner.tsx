@@ -114,7 +114,6 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
   const [size, setSize] = useState<string>('M')
   const [font, setFont] = useState<string>('redondeada')
   const [zone2, setZone2] = useState<string>('Rosa bajito')
-  const [zone3, setZone3] = useState<string>('Amarillo')
   const [letters, setLetters] = useState<string>('Morado')
   const [name, setName] = useState('')
   const [tooSmall, setTooSmall] = useState(false)
@@ -129,10 +128,9 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
   if (!product || !current) return <p className="muted">Por ahora no hay productos disponibles.</p>
 
   // Nombre del filamento elegido en cada zona.
-  const zoneName: Record<ZoneKey, string> = { z1: current.filament.name, z2: zone2, z3: zone3 }
+  const zoneName: Record<ZoneKey, string> = { z1: current.filament.name, z2: zone2 }
   const zoneHex = (k: ZoneKey) => filamentOf(zoneName[k])!.hex
-  const colors: PlateColors = { z1: zoneHex('z1'), z2: zoneHex('z2'), z3: zoneHex('z3') }
-  const hasZone3 = spec.zones.some((z) => z.key === 'z3')
+  const colors: PlateColors = { z1: zoneHex('z1'), z2: zoneHex('z2') }
   const summary = [`${shapeInfo?.letter} · ${shapeInfo?.label}`, spec.zones.map((z) => zoneName[z.key]).join(' + '), `letras ${letterFil.name}`, labelOf(SIZES, size)].join(' · ')
 
   // Las letras nunca pueden ser del mismo filamento que la zona donde van (no se distinguirían).
@@ -141,7 +139,6 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
 
   const setZone = (key: ZoneKey, value: string) => {
     if (key === 'z2') setZone2(value)
-    if (key === 'z3') setZone3(value)
     if (key === spec.lettersOn) setLetters((l) => fixLetters(value, l))
   }
   const pickPlate = (opt: (typeof plateOptions)[number]) => {
@@ -158,7 +155,6 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
     const opt = plateOptions.find((o) => o.filament.name === pal.z1)
     if (opt) setVariantId(opt.variant.id)
     setZone2(pal.z2)
-    setZone3(pal.z3)
     setLetters(pal.letters)
   }
   // Solo se sugieren paletas cuyo color principal existe como variante de este producto.
@@ -176,7 +172,6 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
       <input type="hidden" name="font" value={font} />
       <input type="hidden" name="letter_color" value={letters} />
       <input type="hidden" name="zone_2" value={zone2} />
-      {hasZone3 && <input type="hidden" name="zone_3" value={zone3} />}
 
       {/* Vista previa */}
       <section className="card sticky top-16 z-10 space-y-1 !p-4">
@@ -251,8 +246,8 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
         <p className="text-sm font-extrabold">Combinaciones sugeridas</p>
         <div className="flex flex-wrap gap-2.5">
           {palettes.map((p, i) => {
-            const active = zoneName.z1 === p.z1 && zone2 === p.z2 && (!hasZone3 || zone3 === p.z3) && letters === p.letters
-            const dots = [p.z1, p.z2, ...(hasZone3 ? [p.z3] : [])]
+            const active = zoneName.z1 === p.z1 && zone2 === p.z2 && letters === p.letters
+            const dots = [p.z1, p.z2]
             return (
               <button
                 key={i}

@@ -32,22 +32,22 @@ export const filamentOf = (name?: string | null): Filament | null => {
 
 export const filamentHex = (name?: string | null) => colorHex(name)
 
-export type Palette = { z1: string; z2: string; z3: string; letters: string }
+export type Palette = { z1: string; z2: string; letters: string }
 
-/** Paletas sugeridas, solo con los 4 filamentos. Las letras nunca igualan a z2 (la zona donde van). */
+/** Paletas sugeridas (3 colores como máximo), solo con los 4 filamentos. Las letras nunca igualan a z2. */
 export const SUGGESTED_PALETTES: readonly Palette[] = [
-  { z1: 'Morado', z2: 'Rosa bajito', z3: 'Amarillo', letters: 'Morado' },
-  { z1: 'Azul cielo', z2: 'Amarillo', z3: 'Morado', letters: 'Azul cielo' },
-  { z1: 'Rosa bajito', z2: 'Amarillo', z3: 'Morado', letters: 'Morado' },
-  { z1: 'Morado', z2: 'Amarillo', z3: 'Azul cielo', letters: 'Morado' },
+  { z1: 'Morado', z2: 'Rosa bajito', letters: 'Morado' },
+  { z1: 'Azul cielo', z2: 'Amarillo', letters: 'Morado' },
+  { z1: 'Rosa bajito', z2: 'Amarillo', letters: 'Morado' },
+  { z1: 'Morado', z2: 'Amarillo', letters: 'Azul cielo' },
 ]
 
 // ───────────────────────── Diseños ─────────────────────────
 
 export const SHAPES = [
-  { id: 'circulo', label: 'Círculo y huellitas', letter: 'A', hint: 'Un círculo con un hueso al centro para el nombre y dos huellitas.' },
-  { id: 'caricatura', label: 'Caricatura', letter: 'B', hint: 'Tu mascota en caricatura, de varios colores, sentada sobre un huesito con su nombre. La dibujamos a partir de su foto.' },
-  { id: 'silueta', label: 'Solo silueta', letter: 'C', hint: 'La silueta completa de tu mascota en un solo color, sobre un huesito con su nombre. La hacemos a partir de su foto.' },
+  { id: 'circulo', label: 'Círculo y huellitas', letter: 'A', hint: 'Un círculo con un hueso al centro para el nombre y dos huellitas. Son 3 colores: círculo, hueso con huellitas y letras.' },
+  { id: 'caricatura', label: 'Silueta con hueso', letter: 'B', hint: 'La silueta lisa de tu mascota en un color, sentada sobre un huesito de otro color con su nombre. La hacemos a partir de su foto.' },
+  { id: 'silueta', label: 'Silueta con hueso 2', letter: 'C', hint: 'La silueta completa de tu mascota en un solo color, sobre un huesito con su nombre. La hacemos a partir de su foto.' },
 ] as const
 
 /** Siluetas de pedidos anteriores: solo para poder mostrarlas con nombre en el admin. */
