@@ -1,7 +1,8 @@
 -- =====================================================================
 -- Configurador de placas: color de las letras + diseños A-D + 5 tipografías.
 -- · Placa y letras solo pueden ser uno de los 4 filamentos (amarillo, morado, azul cielo, rosa bajito).
--- · Diseños: personalizada (A), misteriosa (B), navidad (C), huesito (D).
+-- · Diseños: circulo (A, círculo con hueso y huellitas), caricatura (B), silueta (C, solo silueta sobre hueso).
+-- · Cada diseño tiene zonas de color: z1 = color principal (variante del producto), z2 y z3 en zone_colors.
 -- · Tipografías: clasica, moderna, redondeada, divertida, elegante.
 -- Se reemplaza create_order (una sola función, con p_letter_color al final).
 -- Es autosuficiente: crea official_clicker_color() si todavía no existe (misma definición que 20261103000001).
@@ -31,8 +32,10 @@ returns text language sql immutable as $$
 $$;
 
 alter table public.tag_designs add column if not exists letter_color text;
+alter table public.tag_designs add column if not exists zone_colors jsonb;
 
 drop function if exists public.create_order(uuid, uuid, text, text, text, jsonb, text, text, text, text, text);
+drop function if exists public.create_order(uuid, uuid, text, text, text, jsonb, text, text, text, text, text, text);
 
 create or replace function public.create_order(
   p_pet_id           uuid,
@@ -46,7 +49,8 @@ create or replace function public.create_order(
   p_size_code        text default null,
   p_font             text default null,
   p_charm            text default null,   -- sin uso; se conserva por compatibilidad
-  p_letter_color     text default null)
+  p_letter_color     text default null,
+  p_zone_colors      jsonb default null)
 returns uuid language plpgsql volatile security definer set search_path = public as $$
 declare
   v_variant public.product_variants%rowtype;
@@ -58,11 +62,13 @@ declare
   v_size    numeric(6,2);
   v_plate   text;
   v_letters text;
+  v_zones   jsonb;
+  rec       record;
 begin
   if auth.uid() is null then raise exception 'not_authenticated'; end if;
   if not public.owns_pet(p_pet_id) then raise exception 'not_your_pet'; end if;
 
-  if p_silhouette is not null and p_silhouette not in ('personalizada','misteriosa','navidad','huesito') then
+  if p_silhouette is not null and p_silhouette not in ('circulo','caricatura','silueta') then
     raise exception 'invalid_silhouette';
   end if;
   if p_size_code is not null and p_size_code not in ('S','M','L') then raise exception 'invalid_size'; end if;
@@ -83,7 +89,20 @@ begin
   if p_letter_color is not null and btrim(p_letter_color) <> '' then
     v_letters := public.official_clicker_color(p_letter_color);
     if v_letters is null then raise exception 'invalid_letter_color'; end if;
-    if v_letters = v_plate then raise exception 'letter_color_same_as_plate'; end if;
+  end if;
+
+  -- Colores de las demás partes (z2, z3): también solo filamentos reales.
+  if p_zone_colors is not null then
+    if jsonb_typeof(p_zone_colors) <> 'object' then raise exception 'invalid_zone_colors'; end if;
+    for rec in select key, value from jsonb_each_text(p_zone_colors) loop
+      if rec.key not in ('z2','z3') then raise exception 'invalid_zone'; end if;
+      if public.official_clicker_color(rec.value) is null then raise exception 'invalid_zone_color'; end if;
+    end loop;
+    select jsonb_object_agg(key, public.official_clicker_color(value)) into v_zones from jsonb_each_text(p_zone_colors);
+  end if;
+  -- Las letras van sobre z2 (hueso / relleno claro): no pueden ser de su mismo filamento.
+  if v_letters is not null and v_zones is not null and v_letters = v_zones->>'z2' then
+    raise exception 'letter_color_same_as_background';
   end if;
 
   v_price := v_product.base_price + v_variant.price_delta;
@@ -99,15 +118,15 @@ begin
   values (v_order, v_product.id, v_variant.id, p_pet_id, v_price)
   returning id into v_item;
 
-  insert into public.tag_designs(order_item_id, engraved_name, pla_color, letter_color, dtf_uv,
+  insert into public.tag_designs(order_item_id, engraved_name, pla_color, letter_color, zone_colors, dtf_uv,
                                  silhouette_type, size_code, width_mm, height_mm, font, charm)
   values (v_item,
           left(coalesce(nullif(btrim(p_engraved_name), ''), v_pet_name), 40),
-          v_plate, v_letters, v_product.includes_dtf_uv,
+          v_plate, v_letters, v_zones, v_product.includes_dtf_uv,
           p_silhouette, p_size_code, v_size, v_size, p_font, null);
 
   return v_order;
 end $$;
 
-revoke execute on function public.create_order(uuid, uuid, text, text, text, jsonb, text, text, text, text, text, text) from public, anon;
-grant  execute on function public.create_order(uuid, uuid, text, text, text, jsonb, text, text, text, text, text, text) to authenticated;
+revoke execute on function public.create_order(uuid, uuid, text, text, text, jsonb, text, text, text, text, text, text, jsonb) from public, anon;
+grant  execute on function public.create_order(uuid, uuid, text, text, text, jsonb, text, text, text, text, text, text, jsonb) to authenticated;

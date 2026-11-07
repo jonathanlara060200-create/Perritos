@@ -1,115 +1,81 @@
 // Arte de las placas como marcado SVG dentro de una caja de 100×100.
-// Es la ÚNICA fuente de las siluetas: la app (PlateDesigner.tsx) y el diseño en Figma usan este mismo dibujo.
+// Es la ÚNICA fuente de los dibujos: la app (PlateDesigner.tsx) y la propuesta de Figma usan este mismo arte.
+// Los dibujos salen del calcado de las 3 referencias del dueño (ver plate-art-data.ts).
 //
-// Estructura física (no cambiar sin consultar):
-//   · silueta de la mascota arriba
-//   · orificio integrado para la argolla (arriba, o en el pompón del gorro)
-//   · base rectangular abajo para el nombre: x 19→81, y 81→92 (centro del nombre: 50, 86.5)
-//
-// Color: todo sale del filamento elegido; las luces y sombras son translúcidas sobre ese mismo filamento.
-// Única excepción: el negro de la silueta "misteriosa", que es solo un recurso de la vista previa.
+// Cada diseño tiene "zonas" de color (z1, z2, z3). Cada zona se imprime en uno de los 4 filamentos.
+// Estructura física: orificio integrado para la argolla arriba y un hueso/base donde va el nombre en relieve.
+// Las zonas z2 y z3 se pintan encima de z1 (z1 es la silueta completa; z2 y z3 son rellenos sobre ella).
+
+import { ART_DATA, type NameArea } from '@/lib/plate-art-data'
 
 export const PLATE_HOLE = '#F2F7FD'
-export const MYSTERY_BLACK = '#17171C'
 
-/** Zona del nombre dentro de la base (unidades de la caja 100×100). */
-export const NAME_AREA = { cx: 50, cy: 86.5, maxWidth: 54 } as const
+export type ZoneKey = 'z1' | 'z2' | 'z3'
+export type PlateColors = { z1: string; z2: string; z3?: string }
+
+export type DesignSpec = {
+  /** Zonas de color que el cliente puede elegir, en orden. z1 = color principal (variante del producto). */
+  zones: readonly { key: ZoneKey; label: string }[]
+  /** Zona sobre la que van las letras (las letras no pueden ser del mismo filamento que esa zona). */
+  lettersOn: ZoneKey
+  /** Dónde va el nombre (caja 100×100): centro, ancho disponible y alto de mayúsculas. */
+  area: NameArea
+}
+
+// Base con forma de hueso del diseño "solo silueta" (misma geometría que las referencias).
+const BONE = { x: 22, y: 72, w: 56, h: 14, r: 6.5 }
+
+export const DESIGN_SPECS: Record<string, DesignSpec> = {
+  circulo: {
+    zones: [
+      { key: 'z1', label: 'Círculo' },
+      { key: 'z2', label: 'Hueso' },
+      { key: 'z3', label: 'Huellitas' },
+    ],
+    lettersOn: 'z2',
+    area: ART_DATA.circulo.name,
+  },
+  caricatura: {
+    zones: [
+      { key: 'z1', label: 'Contorno' },
+      { key: 'z2', label: 'Relleno claro y hueso' },
+      { key: 'z3', label: 'Detalles (orejas y hocico)' },
+    ],
+    lettersOn: 'z2',
+    area: ART_DATA.caricatura.name,
+  },
+  silueta: {
+    zones: [
+      { key: 'z1', label: 'Silueta' },
+      { key: 'z2', label: 'Hueso de la base' },
+    ],
+    lettersOn: 'z2',
+    area: { cx: 50, cy: BONE.y + BONE.h / 2, w: 50, h: 7 },
+  },
+}
 
 const HEX = /^#[0-9A-Fa-f]{6}$/
 const FALLBACK = '#F8C8D8'
+const safe = (c: string | undefined) => (c && HEX.test(c) ? c : FALLBACK)
 
-const dark = (o: number) => `fill="#000000" fill-opacity="${o}"`
-const light = (o: number) => `fill="#FFFFFF" fill-opacity="${o}"`
-const detail = 'fill="#371A16" fill-opacity=".62"'
+const holeMarkup = (h: { x: number; y: number; r: number }) =>
+  `<circle cx="${h.x}" cy="${h.y}" r="${h.r}" fill="${PLATE_HOLE}" stroke="#000000" stroke-opacity=".18" stroke-width=".5"/>`
 
-/** Base rectangular (con puntas redondas) donde va el nombre. */
-function base(f: string) {
-  return (
-    `<g fill="${f}"><rect x="19" y="81" width="62" height="11"/>` +
-    `<circle cx="19" cy="81.5" r="6"/><circle cx="19" cy="91.5" r="6"/>` +
-    `<circle cx="81" cy="81.5" r="6"/><circle cx="81" cy="91.5" r="6"/></g>` +
-    `<rect x="19" y="81" width="62" height="11" ${dark(0.08)}/>`
-  )
-}
+/** Un relleno de zona; el borde del mismo color tapa las costuras finas entre capas. */
+const layer = (d: string, fill: string, seam = false) =>
+  d ? `<path d="${d}" fill="${fill}" fill-rule="evenodd"${seam ? ` stroke="${fill}" stroke-width=".3" stroke-linejoin="round"` : ''}/>` : ''
 
-/** Orificio para la argolla. */
-const hole = (x: number, y: number, r: number) =>
-  `<circle cx="${x}" cy="${y}" r="${r}" fill="${PLATE_HOLE}" stroke="#000000" stroke-opacity=".15" stroke-width=".6"/>`
-
-/** Perrito sentado. `details` agrega pecho, hocico, ojos y nariz (la silueta misteriosa no los lleva). */
-function dog(f: string, details: boolean) {
-  const parts =
-    `<path d="M72 68 C87 68 92 56 86 47" fill="none" stroke="${f}" stroke-width="6" stroke-linecap="round"/>` +
-    `<ellipse cx="31" cy="63" rx="10" ry="13" fill="${f}"/>` +
-    `<ellipse cx="69" cy="63" rx="10" ry="13" fill="${f}"/>` +
-    `<path d="M36 40 C31 52 30 62 33 72 L67 72 C70 62 69 52 64 40 Z" fill="${f}"/>` +
-    `<rect x="37" y="58" width="9" height="17" rx="4.5" fill="${f}"/>` +
-    `<rect x="54" y="58" width="9" height="17" rx="4.5" fill="${f}"/>` +
-    `<ellipse cx="41.5" cy="75" rx="7" ry="3.6" fill="${f}"/>` +
-    `<ellipse cx="58.5" cy="75" rx="7" ry="3.6" fill="${f}"/>` +
-    `<path d="M34 18 C24 12 16 22 18 37 C20 42 28 41 32 34 Z" fill="${f}"/>` +
-    `<path d="M66 18 C76 12 84 22 82 37 C80 42 72 41 68 34 Z" fill="${f}"/>` +
-    `<ellipse cx="50" cy="28" rx="18" ry="16" fill="${f}"/>`
-  if (!details) return parts
-  return (
-    parts +
-    `<ellipse cx="50" cy="56" rx="9" ry="13" ${light(0.35)}/>` +
-    `<path d="M31 24 C25 22 21 28 22 36 C24 38 28 37 30 33 Z" ${dark(0.16)}/>` +
-    `<path d="M69 24 C75 22 79 28 78 36 C76 38 72 37 70 33 Z" ${dark(0.16)}/>` +
-    `<ellipse cx="50" cy="34" rx="9.5" ry="7.5" ${light(0.45)}/>` +
-    `<circle cx="43" cy="26" r="2.3" ${detail}/>` +
-    `<circle cx="57" cy="26" r="2.3" ${detail}/>` +
-    `<ellipse cx="50" cy="32" rx="3.6" ry="2.6" ${detail}/>` +
-    `<path d="M50 34.5 L50 37 M45.5 38 C48 40.5 52 40.5 54.5 38" fill="none" stroke="#371A16" stroke-opacity=".62" stroke-width="1.3" stroke-linecap="round"/>`
-  )
-}
-
-/** Gorro de Santa en el mismo filamento: el relieve se ve con luces y sombras, sin otros colores. */
-function santaHat(f: string) {
-  return (
-    `<path d="M32 12.5 C32 5 40 0.5 50 0.5 C58 0.5 65 4 70 10 C65 8.5 61 8.5 58 9.5 C49 11.5 41 12 32 12.5 Z" fill="${f}"/>` +
-    `<path d="M32 12.5 C32 5 40 0.5 50 0.5 C58 0.5 65 4 70 10 C65 8.5 61 8.5 58 9.5 C49 11.5 41 12 32 12.5 Z" ${dark(0.2)}/>` +
-    `<rect x="29" y="10.5" width="42" height="8" rx="4" fill="${f}"/>` +
-    `<rect x="29" y="10.5" width="42" height="8" rx="4" ${light(0.55)} stroke="#000000" stroke-opacity=".2" stroke-width=".8"/>` +
-    `<circle cx="72.5" cy="8" r="4.8" fill="${f}"/>` +
-    `<circle cx="72.5" cy="8" r="4.8" ${light(0.55)} stroke="#000000" stroke-opacity=".2" stroke-width=".8"/>` +
-    hole(72.5, 8, 1.8)
-  )
-}
-
-/** Huesito en la boca del perrito. */
-function boneInMouth(f: string) {
-  const shapes = (dy: number) =>
-    `<rect x="31" y="${39.4 + dy}" width="38" height="4" rx="2"/>` +
-    `<circle cx="31" cy="${39.6 + dy}" r="3.3"/><circle cx="31" cy="${43.2 + dy}" r="3.3"/>` +
-    `<circle cx="69" cy="${39.6 + dy}" r="3.3"/><circle cx="69" cy="${43.2 + dy}" r="3.3"/>`
-  // 1) contorno oscuro  2) el huesito en el filamento  3) luz encima para que se distinga de la cara
-  return (
-    `<g fill="none" stroke="#371A16" stroke-opacity=".55" stroke-width="1.8" stroke-linejoin="round">${shapes(0)}</g>` +
-    `<g fill="${f}">${shapes(0)}</g><g ${light(0.6)}>${shapes(0)}</g>`
-  )
-}
-
-/** Signo de interrogación dibujado con trazos (sin depender de ninguna fuente). */
-const QUESTION =
-  `<path d="M43 53 C43 45.5 57 45.5 57 53 C57 58 50 58.5 50 64" fill="none" stroke="${PLATE_HOLE}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>` +
-  `<circle cx="50" cy="70" r="2.8" fill="${PLATE_HOLE}"/>`
-
-/**
- * Marcado SVG (sin la etiqueta <svg>) de una silueta, pintada con el filamento `fill`.
- * `fill` debe ser un hex de 6 dígitos; si no lo es se usa un rosa de respaldo (así nunca entra texto inesperado).
- */
-export function plateArtMarkup(id: string, fill: string): string {
-  const f = HEX.test(fill) ? fill : FALLBACK
-  switch (id) {
-    case 'misteriosa':
-      // Silueta negra solo en la vista previa; la base y el nombre sí llevan los filamentos reales.
-      return base(f) + dog(MYSTERY_BLACK, false) + QUESTION + hole(50, 16.5, 2.7)
-    case 'navidad':
-      return base(f) + dog(f, true) + santaHat(f)
-    case 'huesito':
-      return base(f) + dog(f, true) + boneInMouth(f) + hole(50, 16.5, 2.7)
-    default: // 'personalizada' (y 'normal', de pedidos anteriores)
-      return base(f) + dog(f, true) + hole(50, 16.5, 2.7)
+/** SVG (contenido) de un diseño con los colores (hex) de cada zona. No incluye el nombre. */
+export function plateArtMarkup(id: string, colors: PlateColors): string {
+  const c1 = safe(colors.z1)
+  const c2 = safe(colors.z2)
+  const c3 = safe(colors.z3)
+  if (id === 'silueta') {
+    const d = ART_DATA.silueta
+    const { x, y, w, h, r } = BONE
+    const bone = `<g fill="${c2}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/><circle cx="${x}" cy="${y + 3}" r="${r}"/><circle cx="${x}" cy="${y + h - 3}" r="${r}"/><circle cx="${x + w}" cy="${y + 3}" r="${r}"/><circle cx="${x + w}" cy="${y + h - 3}" r="${r}"/></g>`
+    return bone + layer(d.sil, c1) + holeMarkup(d.hole)
   }
+  const d = id === 'circulo' ? ART_DATA.circulo : ART_DATA.caricatura
+  return layer(d.z1, c1) + layer(d.z2, c2, true) + layer(d.z3, c3, true) + holeMarkup(d.hole)
 }

@@ -18,6 +18,7 @@ type Design = {
   thickness_mm: number | null
   pla_color: string | null
   letter_color: string | null
+  zone_colors: { z2?: string; z3?: string } | null
   engraved_name: string | null
   size_code: string | null
   font: string | null
@@ -174,7 +175,7 @@ export default async function AdminOrder({
               <form action={saveDesign.bind(null, design.id, id)} className="space-y-3 border-t border-axo-100 pt-4">
                 <h3 className="font-extrabold">Datos de fabricación</h3>
                 <p className="rounded-xl bg-butter/50 p-2 text-sm font-bold">
-                  Pidió: silueta {labelOf(ALL_SHAPES, design.silhouette_type)} · talla {labelOf(SIZES, design.size_code)} · tipografía {labelOf(ALL_FONTS, design.font)} · letras {design.letter_color ?? '—'}
+                  Pidió: silueta {labelOf(ALL_SHAPES, design.silhouette_type)} · talla {labelOf(SIZES, design.size_code)} · tipografía {labelOf(ALL_FONTS, design.font)} · letras {design.letter_color ?? '—'}{design.zone_colors ? ` · partes: ${[design.pla_color, design.zone_colors.z2, design.zone_colors.z3].filter(Boolean).join(' / ')}` : ''}
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <select name="silhouette_type" defaultValue={design.silhouette_type ?? ''} className="input col-span-2 sm:col-span-1" aria-label="Silueta">

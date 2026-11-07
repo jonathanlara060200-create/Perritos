@@ -32,25 +32,30 @@ export const filamentOf = (name?: string | null): Filament | null => {
 
 export const filamentHex = (name?: string | null) => colorHex(name)
 
-/** Combinaciones sugeridas (placa + letras), solo con los 4 filamentos y con buen contraste. */
-export const SUGGESTED_COMBOS: readonly { plate: string; letters: string }[] = [
-  { plate: 'Rosa bajito', letters: 'Morado' },
-  { plate: 'Azul cielo', letters: 'Morado' },
-  { plate: 'Amarillo', letters: 'Morado' },
-  { plate: 'Morado', letters: 'Amarillo' },
+export type Palette = { z1: string; z2: string; z3: string; letters: string }
+
+/** Paletas sugeridas, solo con los 4 filamentos. Las letras nunca igualan a z2 (la zona donde van). */
+export const SUGGESTED_PALETTES: readonly Palette[] = [
+  { z1: 'Morado', z2: 'Rosa bajito', z3: 'Amarillo', letters: 'Morado' },
+  { z1: 'Azul cielo', z2: 'Amarillo', z3: 'Morado', letters: 'Azul cielo' },
+  { z1: 'Rosa bajito', z2: 'Amarillo', z3: 'Morado', letters: 'Morado' },
+  { z1: 'Morado', z2: 'Amarillo', z3: 'Azul cielo', letters: 'Morado' },
 ]
 
 // ───────────────────────── Diseños ─────────────────────────
 
 export const SHAPES = [
-  { id: 'personalizada', label: 'Mi mascota', letter: 'A', hint: 'La silueta de tu mascota: la diseñamos a la medida a partir de su foto.' },
-  { id: 'misteriosa', label: 'Misteriosa', letter: 'B', hint: 'Una silueta con signo de interrogación, para adivinar quién es. En la vista previa se ve negra; tu placa se fabrica en el filamento que elijas.' },
-  { id: 'navidad', label: 'Navidad', letter: 'C', hint: 'Edición navideña: tu mascota con gorrito de Santa Claus.' },
-  { id: 'huesito', label: 'Huesito', letter: 'D', hint: 'Tu mascota con un huesito en la boca.' },
+  { id: 'circulo', label: 'Círculo y huellitas', letter: 'A', hint: 'Un círculo con un hueso al centro para el nombre y dos huellitas.' },
+  { id: 'caricatura', label: 'Caricatura', letter: 'B', hint: 'Tu mascota en caricatura, de varios colores, sentada sobre un huesito con su nombre. La dibujamos a partir de su foto.' },
+  { id: 'silueta', label: 'Solo silueta', letter: 'C', hint: 'La silueta completa de tu mascota en un solo color, sobre un huesito con su nombre. La hacemos a partir de su foto.' },
 ] as const
 
 /** Siluetas de pedidos anteriores: solo para poder mostrarlas con nombre en el admin. */
 export const LEGACY_SHAPES = [
+  { id: 'personalizada', label: 'Mi mascota (anterior)' },
+  { id: 'misteriosa', label: 'Misteriosa (anterior)' },
+  { id: 'navidad', label: 'Navidad (anterior)' },
+  { id: 'huesito', label: 'Huesito (anterior)' },
   { id: 'normal', label: 'Normal (anterior)' },
   { id: 'mascota', label: 'Mi mascota (anterior)' },
   { id: 'redonda', label: 'Redonda (anterior)' },
