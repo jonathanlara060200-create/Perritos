@@ -3,7 +3,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { PLATE_FONT_FAMILY, PLATE_FONT_FIT, MIN_COMFORT_SIZE } from '@/lib/plate-fonts'
 import { DESIGN_SPECS, plateArtMarkup, type DesignSpec, type PlateColors, type ZoneKey } from '@/lib/plate-art'
-import { FILAMENTS, FONTS, MAX_NAME_LENGTH, SHAPES, SIZES, SUGGESTED_PALETTES, filamentOf, labelOf, type Palette } from '@/lib/plate'
+import { FILAMENTS, FONTS, MAX_NAME_LENGTH, SHAPES, SUGGESTED_PALETTES, filamentOf, type Palette } from '@/lib/plate'
 import { cn, formatMoney } from '@/lib/utils'
 
 export type DesignerProduct = {
@@ -111,7 +111,7 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
 
   const [variantId, setVariantId] = useState(plateOptions[0]?.variant.id ?? '')
   const [shape, setShape] = useState<string>(SHAPES[0].id)
-  const [size, setSize] = useState<string>('M')
+  const size = 'M' // tamaño único (aprox. 5 × 7 cm)
   const [font, setFont] = useState<string>('redondeada')
   const [zone2, setZone2] = useState<string>('Rosa bajito')
   const [letters, setLetters] = useState<string>('Morado')
@@ -131,7 +131,7 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
   const zoneName: Record<ZoneKey, string> = { z1: current.filament.name, z2: zone2 }
   const zoneHex = (k: ZoneKey) => filamentOf(zoneName[k])!.hex
   const colors: PlateColors = { z1: zoneHex('z1'), z2: zoneHex('z2') }
-  const summary = [`${shapeInfo?.letter} · ${shapeInfo?.label}`, spec.zones.map((z) => zoneName[z.key]).join(' + '), `letras ${letterFil.name}`, labelOf(SIZES, size)].join(' · ')
+  const summary = [`${shapeInfo?.letter} · ${shapeInfo?.label}`, spec.zones.map((z) => zoneName[z.key]).join(' + '), `letras ${letterFil.name}`].join(' · ')
 
   // Las letras nunca pueden ser del mismo filamento que la zona donde van (no se distinguirían).
   const lettersBase = zoneName[spec.lettersOn]
@@ -318,17 +318,7 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
         <p className="muted">{FONTS.find((f) => f.id === font)?.hint} Todas son gruesas y de trazo continuo para que el relieve no se rompa.</p>
       </section>
 
-      <section className="card space-y-3">
-        <h2 className="text-xl">5 · Talla</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {SIZES.map((s) => (
-            <button key={s.id} type="button" aria-pressed={size === s.id} onClick={() => setSize(s.id)} className={cn('rounded-3xl border-2 px-2 py-2.5 text-center transition', size === s.id ? chipOn : chipOff)}>
-              <span className="block text-sm font-extrabold">{s.label}</span>
-              <span className="muted block !text-[11px]">{s.mm} mm</span>
-            </button>
-          ))}
-        </div>
-      </section>
+      <p className="muted text-center">Tamaño aproximado de la placa: unos 5 × 7 centímetros.</p>
     </div>
   )
 }
