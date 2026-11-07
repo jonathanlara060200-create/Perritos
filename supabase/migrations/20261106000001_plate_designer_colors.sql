@@ -4,7 +4,9 @@
 -- · Diseños: circulo (A, círculo con hueso y huellitas), caricatura (B), silueta (C, solo silueta sobre hueso).
 -- · Cada diseño tiene zonas de color: z1 = color principal (variante del producto), z2 y z3 en zone_colors.
 -- · Tipografías: clasica, moderna, redondeada, divertida, elegante.
--- Se reemplaza create_order (una sola función, con p_letter_color al final).
+-- create_order nueva (13 parámetros) convive con la anterior (11) para no romper el sitio publicado mientras se despliega.
+-- Los parámetros p_letter_color y p_zone_colors son obligatorios y van antes de los opcionales, así una llamada
+-- vieja de 11 parámetros nunca es ambigua. La función anterior se puede borrar cuando ya esté desplegado el sitio nuevo.
 -- Es autosuficiente: crea official_clicker_color() si todavía no existe (misma definición que 20261103000001).
 -- =====================================================================
 
@@ -34,9 +36,6 @@ $$;
 alter table public.tag_designs add column if not exists letter_color text;
 alter table public.tag_designs add column if not exists zone_colors jsonb;
 
-drop function if exists public.create_order(uuid, uuid, text, text, text, jsonb, text, text, text, text, text);
-drop function if exists public.create_order(uuid, uuid, text, text, text, jsonb, text, text, text, text, text, text);
-
 create or replace function public.create_order(
   p_pet_id           uuid,
   p_variant_id       uuid,
@@ -44,13 +43,13 @@ create or replace function public.create_order(
   p_shipping_name    text,
   p_shipping_phone   text,
   p_shipping_address jsonb,
+  p_letter_color     text,
+  p_zone_colors      jsonb,
   p_customer_notes   text default null,
   p_silhouette       text default null,
   p_size_code        text default null,
   p_font             text default null,
-  p_charm            text default null,   -- sin uso; se conserva por compatibilidad
-  p_letter_color     text default null,
-  p_zone_colors      jsonb default null)
+  p_charm            text default null)   -- sin uso; se conserva por compatibilidad
 returns uuid language plpgsql volatile security definer set search_path = public as $$
 declare
   v_variant public.product_variants%rowtype;
@@ -128,5 +127,5 @@ begin
   return v_order;
 end $$;
 
-revoke execute on function public.create_order(uuid, uuid, text, text, text, jsonb, text, text, text, text, text, text, jsonb) from public, anon;
-grant  execute on function public.create_order(uuid, uuid, text, text, text, jsonb, text, text, text, text, text, text, jsonb) to authenticated;
+revoke execute on function public.create_order(uuid, uuid, text, text, text, jsonb, text, jsonb, text, text, text, text, text) from public, anon;
+grant  execute on function public.create_order(uuid, uuid, text, text, text, jsonb, text, jsonb, text, text, text, text, text) to authenticated;
