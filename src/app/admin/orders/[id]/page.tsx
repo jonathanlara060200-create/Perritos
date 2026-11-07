@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ALL_SHAPES, FONTS, SHAPES, SIZES, labelOf } from '@/lib/plate'
+import { ALL_FONTS, ALL_SHAPES, FILAMENTS, SHAPES, SIZES, labelOf } from '@/lib/plate'
 import { notFound } from 'next/navigation'
 import { addNote, assignTagToItem, registerPayment, saveDesign, updateOrder } from '@/app/actions/admin'
 import { Flash } from '@/components/Flash'
@@ -17,6 +17,7 @@ type Design = {
   height_mm: number | null
   thickness_mm: number | null
   pla_color: string | null
+  letter_color: string | null
   engraved_name: string | null
   size_code: string | null
   font: string | null
@@ -173,7 +174,7 @@ export default async function AdminOrder({
               <form action={saveDesign.bind(null, design.id, id)} className="space-y-3 border-t border-axo-100 pt-4">
                 <h3 className="font-extrabold">Datos de fabricación</h3>
                 <p className="rounded-xl bg-butter/50 p-2 text-sm font-bold">
-                  Pidió: silueta {labelOf(ALL_SHAPES, design.silhouette_type)} · talla {labelOf(SIZES, design.size_code)} · tipografía {labelOf(FONTS, design.font)}
+                  Pidió: silueta {labelOf(ALL_SHAPES, design.silhouette_type)} · talla {labelOf(SIZES, design.size_code)} · tipografía {labelOf(ALL_FONTS, design.font)} · letras {design.letter_color ?? '—'}
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <select name="silhouette_type" defaultValue={design.silhouette_type ?? ''} className="input col-span-2 sm:col-span-1" aria-label="Silueta">
@@ -190,8 +191,20 @@ export default async function AdminOrder({
                   <input name="thickness_mm" inputMode="decimal" defaultValue={design.thickness_mm ?? ''} placeholder="Grosor mm" className="input" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <input name="pla_color" defaultValue={design.pla_color ?? ''} placeholder="Color PLA" className="input" />
-                  <input name="engraved_name" maxLength={40} defaultValue={design.engraved_name ?? ''} placeholder="Nombre en la placa" className="input" />
+                  <select name="pla_color" defaultValue={design.pla_color ?? ''} className="input" aria-label="Filamento de la placa">
+                    <option value="">Filamento de la placa…</option>
+                    {FILAMENTS.map((f) => (
+                      <option key={f.name} value={f.name}>{f.label}</option>
+                    ))}
+                    {design.pla_color && !FILAMENTS.some((f) => f.name === design.pla_color) && <option value={design.pla_color}>{design.pla_color}</option>}
+                  </select>
+                  <select name="letter_color" defaultValue={design.letter_color ?? ''} className="input" aria-label="Filamento de las letras">
+                    <option value="">Filamento de las letras…</option>
+                    {FILAMENTS.map((f) => (
+                      <option key={f.name} value={f.name}>{f.label}</option>
+                    ))}
+                  </select>
+                  <input name="engraved_name" maxLength={40} defaultValue={design.engraved_name ?? ''} placeholder="Nombre en la placa" className="input col-span-2" />
                 </div>
                 <textarea name="notes" rows={2} defaultValue={design.notes ?? ''} placeholder="Observaciones de diseño" className="input" />
                 <div className="flex flex-wrap gap-5">
