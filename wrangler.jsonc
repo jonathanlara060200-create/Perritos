@@ -8,6 +8,13 @@
   "vars": {
     "NEXT_PUBLIC_SITE_URL": "https://perritos.jonathanlara060200.workers.dev"
   },
+  // Despliegues de vista previa (ramas distintas a main). Usan la misma URL pública; las variables
+  // NEXT_PUBLIC_* de Supabase vienen del panel de Cloudflare y apuntan a la misma base de datos.
+  "previews": {
+    "vars": {
+      "NEXT_PUBLIC_SITE_URL": "https://perritos.jonathanlara060200.workers.dev"
+    }
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
