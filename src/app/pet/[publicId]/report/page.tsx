@@ -32,11 +32,11 @@ export default async function ReportPage({ params }: { params: Promise<{ publicI
         </div>
       </div>
 
-      {pet.allow_location_reports ? (
+      {pet.is_lost && pet.allow_location_reports ? (
         <ReportForm publicId={publicId} petName={pet.name} />
       ) : (
         <div className="card">
-          <p className="font-bold">La familia desactivó los reportes de ubicación.</p>
+          <p className="font-bold">{pet.is_lost ? 'La familia desactivó los reportes de ubicación.' : 'Los reportes de ubicación solo están disponibles cuando la mascota está perdida.'}</p>
           <Link href={`/pet/${publicId}`} className="btn-primary mt-3 w-full">Ver cómo contactarlos</Link>
         </div>
       )}

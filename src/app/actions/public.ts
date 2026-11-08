@@ -6,6 +6,7 @@ export type ReportResult = { ok: true } | { ok: false; error: string }
 
 const ERRORS: Record<string, string> = {
   pet_not_found: 'No encontramos esta mascota.',
+  not_lost: 'Los reportes de ubicación solo están disponibles cuando la mascota está perdida.',
   reports_disabled: 'La familia desactivó los reportes de ubicación.',
   invalid_coordinates: 'No pudimos leer la ubicación.',
   empty_report: 'Comparte tu ubicación o escribe dónde la viste.',
