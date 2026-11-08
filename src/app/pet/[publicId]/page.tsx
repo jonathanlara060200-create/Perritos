@@ -125,9 +125,9 @@ export default async function PublicPetPage({
           ))}
         </section>
 
-        {pet.allow_location_reports && (
+        {pet.is_lost && pet.allow_location_reports && (
           <section className="space-y-2">
-            <h2 className="text-xl">{pet.is_lost ? '¿La encontraste?' : '¿Me encontraste?'}</h2>
+            <h2 className="text-xl">¿La encontraste?</h2>
             <Link href={`/pet/${pet.public_id}/report`} className="btn-primary w-full py-4 text-lg">
               📍 Reportar ubicación
             </Link>
