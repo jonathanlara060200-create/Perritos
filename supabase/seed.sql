@@ -11,10 +11,14 @@ insert into public.product_variants (product_id, color_name, color_hex)
 select p.id, c.name, c.hex
 from public.products p
 cross join (values
-  ('Negro',  '#1F1F1F'),
-  ('Blanco', '#F5F5F5'),
-  ('Gris',   '#8E8E8E'),
-  ('Madera', '#C9A66B')
+  ('Rosa',       '#F4B8C8'),
+  ('Amarillo',   '#F6E3A1'),
+  ('Azul cielo', '#A9D6F0'),
+  ('Morado',     '#CDB8F0'),
+  ('Negro',      '#1F1F1F'),
+  ('Blanco',     '#F5F5F5'),
+  ('Gris',       '#8E8E8E'),
+  ('Madera',     '#C9A66B')
 ) as c(name, hex)
 on conflict (product_id, color_name) do nothing;
 

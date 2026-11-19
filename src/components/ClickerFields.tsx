@@ -17,7 +17,7 @@ export type ClickerFormValues = {
   status?: string
 }
 
-/** Selector con tus 4 colores y nada más. */
+/** Selector con tus colores y nada más. */
 function ColorSelect({ name, value }: { name: string; value?: string | null }) {
   return (
     <select name={name} defaultValue={officialColor(value) ?? ''} className="input">

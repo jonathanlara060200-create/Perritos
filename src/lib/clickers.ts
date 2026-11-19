@@ -1,27 +1,23 @@
-/** Colores de la base modular del clicker (los 4 filamentos ELEGOO que manejas). */
+/** Colores de la base modular del clicker: los 4 pasteles de siempre + los 4 filamentos ELEGOO (negro, blanco, gris, madera). */
 export const BASE_COLORS = [
+  { name: 'Azul cielo', hex: '#8ED1F5' },
+  { name: 'Amarillo', hex: '#FFD84D' },
+  { name: 'Rosa bajito', hex: '#F8C8D8' },
+  { name: 'Morado', hex: '#A98BDB' },
   { name: 'Negro', hex: '#1F1F1F' },
   { name: 'Blanco', hex: '#F5F5F5' },
   { name: 'Gris', hex: '#8E8E8E' },
   { name: 'Madera', hex: '#C9A66B' },
 ] as const
 
-/** Los 4 colores de filamento que manejas: base, tecla y letra salen siempre de estos. */
+/** Los colores de filamento que manejas: base, tecla y letra salen siempre de estos. */
 export const COLOR_LIST: readonly { name: string; hex: string }[] = BASE_COLORS
-
-/** Colores pastel anteriores: ya no se ofrecen, pero los pedidos viejos se siguen viendo bien. */
-const LEGACY_COLORS: readonly { name: string; hex: string }[] = [
-  { name: 'Azul cielo', hex: '#8ED1F5' },
-  { name: 'Amarillo', hex: '#FFD84D' },
-  { name: 'Rosa bajito', hex: '#F8C8D8' },
-  { name: 'Morado', hex: '#A98BDB' },
-]
 
 /** Minúsculas, sin acentos y sin espacios repetidos: "Rosa  Bajito" = "rosa bajito". */
 export const colorKey = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/\s+/g, ' ')
 
-/** Nombres abreviados o "de cariño" → el color real que tienes (Café = Madera, Color madera = Madera). */
+/** Nombres abreviados o "de cariño" → el color real que tienes (Azul = Azul cielo, Lila = Morado, Rosa = Rosa bajito, Café = Madera). */
 const ALIASES: Record<string, string> = {
   negro: 'Negro',
   blanco: 'Blanco',
@@ -29,7 +25,6 @@ const ALIASES: Record<string, string> = {
   madera: 'Madera',
   'color madera': 'Madera',
   cafe: 'Madera',
-  // Pasteles anteriores (solo para pedidos que ya existen)
   azul: 'Azul cielo',
   'azul cielo': 'Azul cielo',
   'azul claro': 'Azul cielo',
@@ -54,15 +49,15 @@ export function canonicalColor(name?: string | null): string | null {
   return ALIASES[colorKey(t)] ?? t
 }
 
-const COLOR_MAP = new Map([...COLOR_LIST, ...LEGACY_COLORS].map((c) => [c.name, c.hex]))
+const COLOR_MAP = new Map(COLOR_LIST.map((c) => [c.name, c.hex]))
 
-/** El color oficial (uno de los 4 actuales, o un pastel de pedidos viejos) o null. Reconoce alias: café, color madera… */
+/** El color oficial (uno de los de la lista) o null. Reconoce alias: azul, lila, rosa, café… Cualquier otra cosa no es válida. */
 export function officialColor(name?: string | null): string | null {
   const c = canonicalColor(name)
   return c && COLOR_MAP.has(c) ? c : null
 }
 
-/** Hex del color oficial. null si no es uno de los colores conocidos. */
+/** Hex del color oficial. null si no es uno de los colores oficiales. */
 export function colorHex(name?: string | null): string | null {
   const c = officialColor(name)
   return c ? (COLOR_MAP.get(c) ?? null) : null

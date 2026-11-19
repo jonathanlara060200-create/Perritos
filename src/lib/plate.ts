@@ -3,10 +3,14 @@ import { COLOR_LIST, colorHex, officialColor } from '@/lib/clickers'
 
 // ───────────────────────── Filamentos (única fuente de color de fabricación) ─────────────────────────
 
-/** Orden en que se muestran los 4 filamentos que manejas. Los hex salen de lib/clickers.ts. */
-const FILAMENT_ORDER = ['Negro', 'Blanco', 'Gris', 'Madera'] as const
+/** Orden en que se muestran los filamentos que manejas. Los hex salen de lib/clickers.ts. */
+const FILAMENT_ORDER = ['Amarillo', 'Morado', 'Azul cielo', 'Rosa bajito', 'Negro', 'Blanco', 'Gris', 'Madera'] as const
 
 const FILAMENT_LABELS: Record<string, string> = {
+  Amarillo: 'Amarillo pastel',
+  Morado: 'Morado pastel',
+  'Azul cielo': 'Azul cielo pastel',
+  'Rosa bajito': 'Rosa bajito pastel',
   Negro: 'Negro',
   Blanco: 'Blanco',
   Gris: 'Gris',
@@ -15,7 +19,7 @@ const FILAMENT_LABELS: Record<string, string> = {
 
 export type Filament = { name: string; label: string; hex: string }
 
-/** Los únicos 4 colores con los que se fabrica: placa y letras salen siempre de aquí. */
+/** Los únicos colores con los que se fabrica: placa y letras salen siempre de aquí. */
 export const FILAMENTS: readonly Filament[] = FILAMENT_ORDER.map((name) => ({
   name,
   label: FILAMENT_LABELS[name],
@@ -24,7 +28,7 @@ export const FILAMENTS: readonly Filament[] = FILAMENT_ORDER.map((name) => ({
 
 export const FILAMENT_NAMES = FILAMENTS.map((f) => f.name) as unknown as [string, ...string[]]
 
-/** Filamento oficial para un nombre de color (reconoce alias: "Café" = "Madera"). null si no es uno de los 4. */
+/** Filamento oficial para un nombre de color (reconoce alias: "Rosa" = "Rosa bajito"). null si no es uno de los filamentos. */
 export const filamentOf = (name?: string | null): Filament | null => {
   const official = officialColor(name)
   return FILAMENTS.find((f) => f.name === official) ?? null
@@ -34,8 +38,12 @@ export const filamentHex = (name?: string | null) => colorHex(name)
 
 export type Palette = { z1: string; z2: string; letters: string }
 
-/** Paletas sugeridas (3 colores como máximo), solo con los 4 filamentos. Las letras nunca igualan a z2. */
+/** Paletas sugeridas (3 colores como máximo), solo con tus filamentos. Las letras nunca igualan a z2. */
 export const SUGGESTED_PALETTES: readonly Palette[] = [
+  { z1: 'Morado', z2: 'Rosa bajito', letters: 'Morado' },
+  { z1: 'Azul cielo', z2: 'Amarillo', letters: 'Morado' },
+  { z1: 'Rosa bajito', z2: 'Amarillo', letters: 'Morado' },
+  { z1: 'Morado', z2: 'Amarillo', letters: 'Azul cielo' },
   { z1: 'Negro', z2: 'Blanco', letters: 'Madera' },
   { z1: 'Madera', z2: 'Negro', letters: 'Blanco' },
   { z1: 'Gris', z2: 'Blanco', letters: 'Negro' },

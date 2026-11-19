@@ -3,7 +3,7 @@
 // Los dibujos salen del calcado de las 3 referencias del dueño (ver plate-art-data.ts).
 //
 // Cada diseño tiene máximo 2 zonas de color (z1, z2) más el color de las letras = 3 colores como máximo.
-// Cada zona se imprime en uno de los 4 filamentos.
+// Cada zona se imprime en uno de tus filamentos.
 // Estructura física: orificio integrado para la argolla arriba y un hueso/base donde va el nombre en relieve.
 
 import { ART_DATA, type NameArea } from '@/lib/plate-art-data'
@@ -53,7 +53,7 @@ export const DESIGN_SPECS: Record<string, DesignSpec> = {
 }
 
 const HEX = /^#[0-9A-Fa-f]{6}$/
-const FALLBACK = '#8E8E8E'
+const FALLBACK = '#F8C8D8'
 const safe = (c: string | undefined) => (c && HEX.test(c) ? c : FALLBACK)
 
 const holeMarkup = (h: { x: number; y: number; r: number }) =>

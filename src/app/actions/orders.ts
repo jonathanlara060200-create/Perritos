@@ -22,8 +22,8 @@ const schema = z.object({
   silhouette: z.enum(SHAPE_IDS).default('circulo'),
   size_code: z.enum(SIZE_IDS).default('M'),
   font: z.enum(FONT_IDS).default('redondeada'),
-  letter_color: z.enum(FILAMENT_NAMES, { message: 'Elige uno de los 4 colores de letra disponibles.' }),
-  zone_2: z.enum(FILAMENT_NAMES, { message: 'Elige uno de los 4 colores disponibles para cada parte.' }),
+  letter_color: z.enum(FILAMENT_NAMES, { message: 'Elige uno de los colores de letra disponibles.' }),
+  zone_2: z.enum(FILAMENT_NAMES, { message: 'Elige uno de los colores disponibles para cada parte.' }),
   zip: z.string().regex(/^\d{5}$/, 'El código postal debe tener 5 dígitos.'),
 })
 

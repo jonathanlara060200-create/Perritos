@@ -99,7 +99,7 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
   const [productId, setProductId] = useState(products[0]?.id ?? '')
   const product = products.find((p) => p.id === productId) ?? products[0]
 
-  // Solo los 4 filamentos: cualquier otra variante del catálogo no se ofrece.
+  // Solo los filamentos de la lista: cualquier otra variante del catálogo no se ofrece.
   const plateOptions = useMemo(
     () =>
       (product?.variants ?? []).flatMap((v) => {
@@ -113,8 +113,8 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
   const [shape, setShape] = useState<string>(SHAPES[0].id)
   const size = 'M' // tamaño único (aprox. 5 × 7 cm)
   const [font, setFont] = useState<string>('redondeada')
-  const [zone2, setZone2] = useState<string>('Blanco')
-  const [letters, setLetters] = useState<string>('Madera')
+  const [zone2, setZone2] = useState<string>('Rosa bajito')
+  const [letters, setLetters] = useState<string>('Morado')
   const [name, setName] = useState('')
   const [tooSmall, setTooSmall] = useState(false)
 
@@ -230,7 +230,7 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
 
       <section className="card space-y-4">
         <h2 className="text-xl">2 · Colores</h2>
-        <p className="muted">Cada parte se imprime en uno de tus 4 filamentos.</p>
+        <p className="muted">Cada parte se imprime en uno de tus filamentos.</p>
         {spec.zones.map((z) => (
           <div key={z.key} className="space-y-1">
             <p className="text-sm font-extrabold">{z.label}</p>
@@ -265,7 +265,7 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
             )
           })}
         </div>
-        <p className="muted">Solo mostramos los 4 filamentos con los que fabricamos.</p>
+        <p className="muted">Solo mostramos los filamentos con los que fabricamos.</p>
       </section>
 
       <section className="card space-y-3">
