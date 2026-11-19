@@ -53,7 +53,7 @@ export const DESIGN_SPECS: Record<string, DesignSpec> = {
 }
 
 const HEX = /^#[0-9A-Fa-f]{6}$/
-const FALLBACK = '#F8C8D8'
+const FALLBACK = '#8E8E8E'
 const safe = (c: string | undefined) => (c && HEX.test(c) ? c : FALLBACK)
 
 const holeMarkup = (h: { x: number; y: number; r: number }) =>
