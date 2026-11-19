@@ -113,8 +113,8 @@ export function PlateDesigner({ products }: { products: DesignerProduct[] }) {
   const [shape, setShape] = useState<string>(SHAPES[0].id)
   const size = 'M' // tamaño único (aprox. 5 × 7 cm)
   const [font, setFont] = useState<string>('redondeada')
-  const [zone2, setZone2] = useState<string>('Rosa bajito')
-  const [letters, setLetters] = useState<string>('Morado')
+  const [zone2, setZone2] = useState<string>('Blanco')
+  const [letters, setLetters] = useState<string>('Madera')
   const [name, setName] = useState('')
   const [tooSmall, setTooSmall] = useState(false)
 
