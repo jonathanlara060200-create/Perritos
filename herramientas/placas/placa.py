@@ -200,6 +200,11 @@ def main() -> int:
     ap.add_argument("--nfc", type=float, default=20, help="diámetro del sticker NFC en mm; 0 = sin NFC (def. 20)")
     ap.add_argument("--max-colores", type=int, default=4, help="máximo de colores, incluye el negro (def. 4 = CFS)")
     ap.add_argument("--salida", help="carpeta de salida (def. junto a la imagen)")
+    ap.add_argument(
+        "--ranuras",
+        default="",
+        help='en qué ranura del CFS está cada color, ej. "negro=3,beige=2,blanco=4,rosa=1" (def. en orden 1,2,3,4)',
+    )
     a = ap.parse_args()
 
     ruta = Path(a.imagen)
@@ -368,12 +373,17 @@ def main() -> int:
 
     # Centrar en la cama
     dx, dy = -(minx + maxx) / 2, -(miny + maxy) / 2
+    ranuras = {}
+    for par in filter(None, (x.strip() for x in a.ranuras.split(","))):
+        color, _, num = par.partition("=")
+        ranuras[color.strip().lower()] = int(num)
     partes = []
-    for nombre, (man, hexa) in piezas.items():
+    for k, (nombre, (man, hexa)) in enumerate(piezas.items(), start=1):
         t = a_trimesh(man.translate((dx, dy, 0)))
         t.export(salida / f"{nombre}.stl")
-        partes.append((nombre, t))
-    guardar_3mf(partes, salida / "placa.3mf", ruta.stem)
+        partes.append((nombre, t, ranuras.get(nombre.split("_", 1)[1], k)))
+    guardar_3mf_orca(partes, salida / "placa.3mf", ruta.stem)
+    guardar_3mf(partes, salida / "placa_respaldo.3mf", ruta.stem)
 
     peso = sum(a_trimesh(m).volume for m, _ in piezas.values()) / 1000 * 1.24
     capa_pausa = round(NFC_Z1 / 0.2) + 1  # la pausa va ANTES de esta capa
@@ -392,16 +402,17 @@ def main() -> int:
         f"PLACA LISTA: {salida}",
         f"  Tamaño: {ancho_mm:.1f} x {alto_mm:.1f} x {BASE + TAPA + RELIEVE:.1f} mm  ·  ~{peso:.1f} g",
         "",
-        "COLORES (asigna cada pieza a su ranura del CFS):",
+        "COLORES -> RANURA DEL CFS (ya vienen asignadas en placa.3mf):",
     ]
-    for nombre, (_, hexa) in piezas.items():
-        instr.append(f"  - {nombre:28s} {hexa}")
+    for nombre, _, ranura in partes:
+        instr.append(f"  - {nombre:20s} {piezas[nombre][1]}  ->  filamento {ranura:02d}")
     instr += [
         "",
         "EN CREALITY PRINT:",
         "  1. Abre placa.3mf. Entra como UNA placa con sus partes (si pregunta por escalar a mm, di que NO).",
-        "  2. Cada parte ya viene en su filamento 1-4 (orden de arriba). Revisa que en el CFS la",
-        "     ranura 1 tenga el color de la parte 1, la 2 el de la parte 2, etc. (o cámbialo en la lista de partes).",
+        "  2. Cada parte ya viene en el filamento de la lista de arriba. Si cambias los colores del CFS,",
+        "     vuelve a generar con --ranuras o cámbialo en Objetos -> clic derecho en la parte -> filamento.",
+        "     (Si el 3MF no agarra los colores, prueba placa_respaldo.3mf.)",
         "  3. Altura de capa 0.2 mm (primera capa 0.2). 3 paredes, relleno 15-20%.",
     ]
     if nfc:
@@ -424,6 +435,80 @@ def main() -> int:
     return 0
 
 
+def guardar_3mf_orca(partes, ruta: Path, nombre_objeto: str):
+    """
+    3MF en el formato de Bambu Studio / OrcaSlicer / Creality Print: un objeto con "componentes"
+    (una parte por color) y Metadata/model_settings.config con el nombre y el filamento de cada parte.
+    """
+    import uuid
+    import zipfile
+    from xml.sax.saxutils import quoteattr
+
+    NS = (
+        'xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" '
+        'xmlns:BambuStudio="http://schemas.bambulab.com/package/2021" '
+        'xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06" requiredextensions="p"'
+    )
+    uid = lambda: str(uuid.uuid4())
+    ident = "1 0 0 0 1 0 0 0 1 0 0 0"
+
+    sub = [f'<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" {NS}>',
+           '<metadata name="BambuStudio:3mfVersion">1</metadata>', "<resources>"]
+    for i, (nombre, t, _) in enumerate(partes, start=1):
+        vx = "".join(f'<vertex x="{x:.6f}" y="{y:.6f}" z="{z:.6f}"/>' for x, y, z in np.asarray(t.vertices))
+        tx = "".join(f'<triangle v1="{a}" v2="{b}" v3="{c}"/>' for a, b, c in np.asarray(t.faces))
+        sub.append(f'<object id="{i}" p:UUID="{uid()}" type="model"><mesh><vertices>{vx}</vertices>'
+                   f"<triangles>{tx}</triangles></mesh></object>")
+    sub += ["</resources>", "<build/>", "</model>", ""]
+
+    raiz_id = len(partes) + 1
+    comps = "".join(
+        f'<component p:path="/3D/Objects/object_1.model" objectid="{i}" p:UUID="{uid()}" transform="{ident}"/>'
+        for i in range(1, len(partes) + 1)
+    )
+    raiz = (
+        f'<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" {NS}>\n'
+        '<metadata name="Application">BambuStudio-01.10.00.00</metadata>\n'
+        '<metadata name="BambuStudio:3mfVersion">1</metadata>\n'
+        f'<metadata name="Title">{nombre_objeto}</metadata>\n'
+        f'<resources><object id="{raiz_id}" p:UUID="{uid()}" type="model"><components>{comps}</components></object></resources>\n'
+        f'<build p:UUID="{uid()}"><item objectid="{raiz_id}" p:UUID="{uid()}" transform="{ident}" printable="1"/></build>\n'
+        "</model>\n"
+    )
+    cfg = ['<?xml version="1.0" encoding="UTF-8"?>', "<config>", f'  <object id="{raiz_id}">',
+           f'    <metadata key="name" value={quoteattr(nombre_objeto)}/>',
+           f'    <metadata key="extruder" value="{partes[0][2]}"/>']
+    for i, (nombre, _, ext) in enumerate(partes, start=1):
+        cfg += [f'    <part id="{i}" subtype="normal_part">',
+                f'      <metadata key="name" value={quoteattr(nombre)}/>',
+                '      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>',
+                f'      <metadata key="extruder" value="{ext}"/>',
+                "    </part>"]
+    cfg += ["  </object>", "</config>", ""]
+
+    tipos = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>'
+        '<Default Extension="config" ContentType="text/xml"/>'
+        "</Types>\n"
+    )
+    rel = lambda destino: (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        f'<Relationship Target="{destino}" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>'
+        "</Relationships>\n"
+    )
+    with zipfile.ZipFile(ruta, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("[Content_Types].xml", tipos)
+        z.writestr("_rels/.rels", rel("/3D/3dmodel.model"))
+        z.writestr("3D/3dmodel.model", raiz)
+        z.writestr("3D/_rels/3dmodel.model.rels", rel("/3D/Objects/object_1.model"))
+        z.writestr("3D/Objects/object_1.model", "\n".join(sub))
+        z.writestr("Metadata/model_settings.config", "\n".join(cfg))
+
+
 def guardar_3mf(partes, ruta: Path, nombre_objeto: str):
     """
     3MF estilo PrusaSlicer (lo leen Creality Print, OrcaSlicer, Bambu Studio y PrusaSlicer):
@@ -437,12 +522,12 @@ def guardar_3mf(partes, ruta: Path, nombre_objeto: str):
 
     verts, tris, volumenes = [], [], []
     base_v = base_t = 0
-    for nombre, t in partes:
+    for nombre, t, _ in partes:
         v = np.asarray(t.vertices, np.float64)
         f = np.asarray(t.faces, np.int64) + base_v
         verts.append(v)
         tris.append(f)
-        volumenes.append((nombre, base_t, base_t + len(f) - 1))
+        volumenes.append((nombre, base_t, base_t + len(f) - 1, next(r for n, _, r in partes if n == nombre)))
         base_v += len(v)
         base_t += len(f)
     V = np.concatenate(verts)
@@ -465,7 +550,7 @@ def guardar_3mf(partes, ruta: Path, nombre_objeto: str):
     )
     config = ['<?xml version="1.0" encoding="UTF-8"?>', "<config>", '<object id="1" instances_count="1">',
               f'<metadata type="object" key="name" value={quoteattr(nombre_objeto)}/>']
-    for ext, (nombre, t0, t1) in enumerate(volumenes, start=1):
+    for nombre, t0, t1, ext in volumenes:
         config += [
             f'<volume firstid="{t0}" lastid="{t1}">',
             f'<metadata type="volume" key="name" value={quoteattr(nombre)}/>',

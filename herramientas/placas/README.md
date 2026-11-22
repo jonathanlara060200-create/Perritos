@@ -33,12 +33,14 @@ Sube la imagen de Gemini al chat y pide: "hazme la placa de 60 mm". Te regresa e
 | `--nfc 20` | Diámetro del sticker NFC (25, 20, 15). `--nfc 0` = sin NFC | 20 |
 | `--max-colores 4` | Colores máximos (ranuras del CFS) | 4 |
 | `--salida carpeta` | Dónde guardar | junto a la imagen |
+| `--ranuras "negro=3,beige=2,blanco=4,rosa=1"` | En qué ranura del CFS está cada color (así el 3MF ya llega con los colores puestos) | 1,2,3,4 en orden |
 
 Si el NFC no cabe, el programa te dice qué `--alto` necesitas.
 
 ## Qué te entrega (carpeta con el nombre de la imagen)
 
-- `placa.3mf` → ábrelo en Creality Print. Entra como **una sola placa** con sus partes, cada una ya en su filamento 1–4.
+- `placa.3mf` → ábrelo en Creality Print. Entra como **una sola placa** con sus partes, cada una ya en su filamento.
+- `placa_respaldo.3mf` → la misma placa en formato PrusaSlicer, por si el otro no agarra los colores.
 - `1_negro.stl`, `2_beige.stl`, … → las mismas piezas sueltas, por si acaso.
 - `vista_previa.png` → cómo se va a ver (el círculo punteado rojo es el NFC).
 - `INSTRUCCIONES.txt` → colores de cada pieza, **en qué capa poner la pausa del NFC** y avisos.
