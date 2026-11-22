@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+
+# Builds
+.next/
+.open-next/
+.wrangler/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Variables de entorno (claves): nunca al repositorio
+.env
+.env*.local
+.dev.vars
+
+# Sistema / editores
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/

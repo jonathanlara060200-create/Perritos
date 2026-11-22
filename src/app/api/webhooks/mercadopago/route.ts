@@ -36,15 +36,3 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ ok: false, error: 'db_error' }, { status: 500 })
   return NextResponse.json({ ok: true, result: data })
 }
-
-// Diagnóstico: abre esta dirección en el navegador para ver si la app encuentra sus claves (no muestra los valores).
-export async function GET() {
-  return NextResponse.json({
-    ok: true,
-    configurado: {
-      MP_ACCESS_TOKEN: !!process.env.MP_ACCESS_TOKEN,
-      MP_WEBHOOK_SECRET: !!process.env.MP_WEBHOOK_SECRET,
-      NEXT_PUBLIC_SITE_URL: !!process.env.NEXT_PUBLIC_SITE_URL,
-    },
-  })
-}

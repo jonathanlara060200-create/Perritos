@@ -4,7 +4,7 @@ La identidad física y digital de tu mascota: una placa impresa en 3D con su sil
 
 **Stack:** Next.js 15 (App Router) · TypeScript · Tailwind · Supabase (Postgres, Auth, Storage, RLS) · Cloudflare Workers (OpenNext) · PWA.
 
-> Estado: el código está escrito pero **todavía no se ha compilado ni probado** (el entorno donde se generó no pudo instalar paquetes). El primer paso es `npm install && npm run typecheck`; si hay errores, pásalos y se corrigen. Ver [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) para las decisiones de diseño.
+> Estado: en producción en Cloudflare Workers. Compila sin errores (`npm ci && npm run typecheck && npm run build`). Ver [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) para las decisiones de diseño.
 
 ---
 
@@ -17,11 +17,8 @@ La identidad física y digital de tu mascota: una placa impresa en 3D con su sil
 ## 2. Supabase
 
 1. Crea el proyecto.
-2. En **SQL Editor**, ejecuta en este orden el contenido de:
-   1. `supabase/migrations/20261021000001_schema.sql`
-   2. `supabase/migrations/20261021000002_rls.sql`
-   3. `supabase/migrations/20261021000003_functions.sql`
-   4. `supabase/seed.sql` (productos y colores iniciales; los precios se editan después en `/admin/products`)
+2. En **SQL Editor**, ejecuta **todos** los archivos de `supabase/migrations/` en orden (el nombre empieza con la fecha, así que el orden alfabético es el correcto) y al final `supabase/seed.sql` (productos y colores iniciales; los precios se editan después en `/admin/products`).
+   Cuando se agregue una migración nueva, solo hay que correr esa.
    
    Alternativa con la CLI: `supabase link --project-ref TU_REF && supabase db push`.
 3. **Authentication → URL Configuration**
@@ -68,7 +65,7 @@ Se usa `@opennextjs/cloudflare` (Workers con assets estáticos).
 - **Redirects:** no hay redirects a nivel de plataforma; `/admin/qr` y `/admin/nfc` redirigen dentro de la app a `/admin/tags`.
 - **GitHub:** conecta el repositorio en *Workers & Pages → Create → Import a repository* para desplegar con cada push.
 
-Cosas a verificar en el primer despliegue (no pude probarlas): la generación de QR PNG (`/qr/[id]?format=png`) en Workers, y que `middleware.ts` corra bien con OpenNext.
+**Dominio:** la URL de `NEXT_PUBLIC_SITE_URL` queda grabada en cada NFC y QR. Pasa a tu dominio propio antes de vender más placas (y deja el `workers.dev` funcionando para las placas viejas).
 
 ## 6. PWA
 

@@ -1,12 +1,39 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AxoMark } from '@/components/Logo'
+import { ShareButton } from '@/components/ShareButton'
 import { createPublicClient } from '@/lib/supabase/public'
-import { formatDate, formatMoney, photoUrl, telLink, waLink } from '@/lib/utils'
+import { formatDate, formatMoney, petUrl, photoUrl, telLink, waLink } from '@/lib/utils'
 
 // Siempre fresco: debe reflejar al instante el modo perdida y la privacidad.
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'Mascota', robots: { index: false, follow: false } }
+
+// Vista previa al compartir por WhatsApp/Facebook. Sigue fuera de Google (noindex) por privacidad.
+// p_log: false para no contar la visita dos veces.
+export async function generateMetadata({ params }: { params: Promise<{ publicId: string }> }): Promise<Metadata> {
+  const { publicId } = await params
+  const { data } = await createPublicClient().rpc('get_public_pet', { p_public_id: publicId, p_log: false })
+  const pet = data as PublicPet | null
+  const robots = { index: false, follow: false }
+  if (!pet) return { title: 'Mascota', robots }
+
+  const title = pet.is_lost ? `🚨 Se busca a ${pet.name}` : `Hola, soy ${pet.name}`
+  const description = pet.is_lost
+    ? `${pet.name} está perdida${pet.lost?.last_seen_description ? `. Última vez vista: ${pet.lost.last_seen_description}` : ''}. Si la ves, abre este enlace para avisar a su familia.`.slice(0, 200)
+    : `Perfil de ${pet.name} en AJolote ID.`
+  const photo = photoUrl(pet.photo_path)
+  const images = photo ? [{ url: photo, alt: `Foto de ${pet.name}` }] : ['/logo-512.png']
+  const url = petUrl(pet.public_id)
+
+  return {
+    title,
+    description,
+    robots,
+    openGraph: { title, description, url, images, type: 'website', locale: 'es_MX', siteName: 'AJolote ID' },
+    twitter: { card: photo ? 'summary_large_image' : 'summary', title, description, images },
+  }
+}
 
 type Contact = {
   name: string
@@ -133,6 +160,14 @@ export default async function PublicPetPage({
             </Link>
             <p className="muted text-center">Sin cuentas ni apps. Solo toma un momento.</p>
           </section>
+        )}
+
+        {pet.is_lost && (
+          <ShareButton
+            url={petUrl(pet.public_id)}
+            title={`Se busca a ${pet.name}`}
+            text={`🚨 Se busca a ${pet.name}. Si la ves, abre el enlace para avisar a su familia:`}
+          />
         )}
 
         {pet.is_lost && pet.lost?.reward_amount != null && pet.lost.reward_amount > 0 && (
