@@ -159,6 +159,24 @@ export async function createDeviceAction(label: string) {
   return { ok: true as const, code: r.code, claim_code: r.claim_code, url: `${siteUrl()}/hidratacion/nfc/${r.code}` }
 }
 
+export async function resetClaimCodeAction(deviceId: string) {
+  const id = z.string().uuid().safeParse(deviceId)
+  if (!id.success) return { ok: false as const, error: "Llavero no válido." }
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc("hyd_admin_reset_claim_code", { p_device_id: id.data })
+  if (error) {
+    const msg = error.message?.includes("device_has_owner")
+      ? "Este llavero ya tiene dueño."
+      : error.message?.includes("does not exist") || error.code === "PGRST202"
+        ? "Falta instalar la función en Supabase (ver migración 20261122000001)."
+        : "No tienes permiso o ocurrió un error."
+    return { ok: false as const, error: msg }
+  }
+  revalidatePath("/admin/hidratacion")
+  const r = data as { code: string; claim_code: string }
+  return { ok: true as const, code: r.code, claim_code: r.claim_code }
+}
+
 export async function setDeviceStatus(fd: FormData) {
   const id = z.string().uuid().safeParse(fd.get("id"))
   const status = z.enum(["available", "active", "disabled"]).safeParse(fd.get("status"))

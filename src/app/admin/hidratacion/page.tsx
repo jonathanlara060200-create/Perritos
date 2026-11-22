@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { setDeviceStatus } from "@/app/actions/hyd"
 import { Flash } from "@/components/Flash"
 import { CreateDevice } from "@/components/hyd/CreateDevice"
+import { ResetClaimCode } from "@/components/hyd/ResetClaimCode"
 import { createClient } from "@/lib/supabase/server"
 import { siteUrl } from "@/lib/utils"
 
@@ -30,13 +31,15 @@ export default async function AdminHidratacion({ searchParams }: { searchParams:
               </div>
               <form action={setDeviceStatus} className="flex gap-2">
                 <input type="hidden" name="id" value={d.id} />
+                <input type="hidden" name="status" value={d.status === "disabled" ? (d.owner_id ? "active" : "available") : "disabled"} />
                 {d.status === "disabled" ? (
-                  <button name="status" value={d.owner_id ? "active" : "available"} className="rounded-lg bg-emerald-50 px-3 py-1 text-sm">Activar</button>
+                  <button type="submit" className="rounded-lg bg-emerald-50 px-3 py-1 text-sm">Activar</button>
                 ) : (
-                  <button name="status" value="disabled" className="rounded-lg bg-red-50 px-3 py-1 text-sm text-red-700">Desactivar</button>
+                  <button type="submit" className="rounded-lg bg-red-50 px-3 py-1 text-sm text-red-700">Desactivar</button>
                 )}
               </form>
             </div>
+            {!d.owner_id && <ResetClaimCode deviceId={d.id} />}
           </li>
         ))}
       </ul>
