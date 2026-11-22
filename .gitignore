@@ -24,3 +24,7 @@ next-env.d.ts
 # Supabase local
 supabase/.temp/
 supabase/.branches/
+
+# Salidas del generador de placas
+herramientas/placas/ejemplos/*/
+*.3mf

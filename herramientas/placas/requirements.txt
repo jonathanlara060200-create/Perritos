@@ -1,0 +1,8 @@
+numpy
+opencv-python-headless
+scikit-image
+shapely
+manifold3d
+trimesh
+networkx
+lxml
