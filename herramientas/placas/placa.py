@@ -258,6 +258,10 @@ def main(argv: list[str] | None = None) -> int:
         if circ > 0.75 and 1.0 <= diam <= 14:
             (cx, cy), _ = cv2.minEnclosingCircle(cs[0])
             agujeros.append((cx, cy, diam))
+    # Solo UNA argolla: el hueco redondo más alto, y solo si está en el 25 % superior de la placa.
+    # (Así no se perforan los huecos de letras como O, B, D ni los brillos de los ojos.)
+    y_tope = ys.min() + 0.25 * alto_pieza_px
+    agujeros = sorted((h for h in agujeros if h[1] <= y_tope), key=lambda h: h[1])[:1]
     if not agujeros:
         avisos.append("No encontré el agujero de la argolla. Revisa que la imagen tenga una argolla con hoyo redondo.")
 
