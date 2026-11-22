@@ -28,3 +28,5 @@ supabase/.branches/
 # Salidas del generador de placas
 herramientas/placas/ejemplos/*/
 *.3mf
+__pycache__/
+*.pyc
