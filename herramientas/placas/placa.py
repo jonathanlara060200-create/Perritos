@@ -368,14 +368,12 @@ def main() -> int:
 
     # Centrar en la cama
     dx, dy = -(minx + maxx) / 2, -(miny + maxy) / 2
-    escena = trimesh.Scene()
+    partes = []
     for nombre, (man, hexa) in piezas.items():
         t = a_trimesh(man.translate((dx, dy, 0)))
-        rgb = [int(hexa[i : i + 2], 16) for i in (1, 3, 5)]
-        t.visual.face_colors = rgb + [255]
         t.export(salida / f"{nombre}.stl")
-        escena.add_geometry(t, node_name=nombre, geom_name=nombre)
-    escena.export(salida / "placa.3mf")
+        partes.append((nombre, t))
+    guardar_3mf(partes, salida / "placa.3mf", ruta.stem)
 
     peso = sum(a_trimesh(m).volume for m, _ in piezas.values()) / 1000 * 1.24
     capa_pausa = round(NFC_Z1 / 0.2) + 1  # la pausa va ANTES de esta capa
@@ -401,8 +399,9 @@ def main() -> int:
     instr += [
         "",
         "EN CREALITY PRINT:",
-        "  1. Abre placa.3mf. Si pregunta 'cargar como un objeto con varias partes', di que SÍ.",
-        "  2. Asigna a cada parte su filamento (los nombres dicen el color).",
+        "  1. Abre placa.3mf. Entra como UNA placa con sus partes (si pregunta por escalar a mm, di que NO).",
+        "  2. Cada parte ya viene en su filamento 1-4 (orden de arriba). Revisa que en el CFS la",
+        "     ranura 1 tenga el color de la parte 1, la 2 el de la parte 2, etc. (o cámbialo en la lista de partes).",
         "  3. Altura de capa 0.2 mm (primera capa 0.2). 3 paredes, relleno 15-20%.",
     ]
     if nfc:
@@ -423,6 +422,80 @@ def main() -> int:
     ]
     vista_previa(silueta, capas2d, nfc, a.nfc, salida / "vista_previa.png")
     return 0
+
+
+def guardar_3mf(partes, ruta: Path, nombre_objeto: str):
+    """
+    3MF estilo PrusaSlicer (lo leen Creality Print, OrcaSlicer, Bambu Studio y PrusaSlicer):
+    UN solo objeto cuya malla contiene todas las piezas, y Metadata/Slic3r_PE_model.config dice qué
+    triángulos son de qué parte, su nombre y su extrusor (1..4 = ranura del CFS).
+    Así el slicer lo ve como una placa de 60 mm (no como piezas sueltas de 2 mm que "parecen pulgadas")
+    y las piezas no se pueden desacomodar.
+    """
+    import zipfile
+    from xml.sax.saxutils import quoteattr
+
+    verts, tris, volumenes = [], [], []
+    base_v = base_t = 0
+    for nombre, t in partes:
+        v = np.asarray(t.vertices, np.float64)
+        f = np.asarray(t.faces, np.int64) + base_v
+        verts.append(v)
+        tris.append(f)
+        volumenes.append((nombre, base_t, base_t + len(f) - 1))
+        base_v += len(v)
+        base_t += len(f)
+    V = np.concatenate(verts)
+    F = np.concatenate(tris)
+
+    vx = "".join(f'<vertex x="{x:.6f}" y="{y:.6f}" z="{z:.6f}"/>' for x, y, z in V)
+    tx = "".join(f'<triangle v1="{a}" v2="{b}" v3="{c}"/>' for a, b, c in F)
+    modelo = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<model unit="millimeter" xml:lang="en-US" '
+        'xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" '
+        'xmlns:slic3rpe="http://schemas.slic3r.org/3mf/2017/06">\n'
+        '<metadata name="slic3rpe:Version3mf">1</metadata>\n'
+        f'<metadata name="Title">{nombre_objeto}</metadata>\n'
+        '<resources><object id="1" type="model"><mesh>'
+        f"<vertices>{vx}</vertices><triangles>{tx}</triangles>"
+        "</mesh></object></resources>\n"
+        '<build><item objectid="1" transform="1 0 0 0 1 0 0 0 1 0 0 0" printable="1"/></build>\n'
+        "</model>\n"
+    )
+    config = ['<?xml version="1.0" encoding="UTF-8"?>', "<config>", '<object id="1" instances_count="1">',
+              f'<metadata type="object" key="name" value={quoteattr(nombre_objeto)}/>']
+    for ext, (nombre, t0, t1) in enumerate(volumenes, start=1):
+        config += [
+            f'<volume firstid="{t0}" lastid="{t1}">',
+            f'<metadata type="volume" key="name" value={quoteattr(nombre)}/>',
+            '<metadata type="volume" key="volume_type" value="ModelPart"/>',
+            f'<metadata type="volume" key="extruder" value="{ext}"/>',
+            '<mesh edges_fixed="0" degenerate_facets="0" facets_removed="0" facets_reversed="0" backwards_edges="0"/>',
+            "</volume>",
+        ]
+    config += ["</object>", "</config>", ""]
+
+    tipos = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>'
+        '<Default Extension="config" ContentType="text/xml"/>'
+        "</Types>\n"
+    )
+    rels = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Target="/3D/3dmodel.model" Id="rel0" '
+        'Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>'
+        "</Relationships>\n"
+    )
+    with zipfile.ZipFile(ruta, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("[Content_Types].xml", tipos)
+        z.writestr("_rels/.rels", rels)
+        z.writestr("3D/3dmodel.model", modelo)
+        z.writestr("Metadata/Slic3r_PE_model.config", "\n".join(config))
 
 
 def vista_previa(silueta, capas2d, nfc, nfc_d, ruta: Path):

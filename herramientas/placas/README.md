@@ -38,15 +38,17 @@ Si el NFC no cabe, el programa te dice qué `--alto` necesitas.
 
 ## Qué te entrega (carpeta con el nombre de la imagen)
 
-- `placa.3mf` → ábrelo en Creality Print (di **sí** a "cargar como un objeto con varias partes").
+- `placa.3mf` → ábrelo en Creality Print. Entra como **una sola placa** con sus partes, cada una ya en su filamento 1–4.
 - `1_negro.stl`, `2_beige.stl`, … → las mismas piezas sueltas, por si acaso.
 - `vista_previa.png` → cómo se va a ver (el círculo punteado rojo es el NFC).
 - `INSTRUCCIONES.txt` → colores de cada pieza, **en qué capa poner la pausa del NFC** y avisos.
 
 ## En Creality Print (resumen)
 
-1. Abre `placa.3mf` → "¿un objeto con varias partes?" → **Sí**.
-2. Asigna cada parte a su filamento del CFS.
+1. Abre `placa.3mf`. Si pregunta "¿escalar a milímetros?" → **No** (ya está en mm).
+2. Las partes vienen en el filamento 1, 2, 3, 4 en el orden de `INSTRUCCIONES.txt`. Revisa que coincidan con las ranuras del CFS.
+
+**Plan B** si el 3MF no entrara bien: arrastra los 4 `.stl` juntos a Creality Print → "¿un objeto con varias partes?" **Sí** → "¿escalar?" **No**.
 3. Capa 0.2 mm · 3 paredes · relleno 15–20 % · torre de purga activada.
 4. Rebana → en la barra de capas ve a la **capa 8 (1.6 mm)** → clic derecho en el "+" → **Agregar pausa**.
 5. Cuando pause: mete el sticker NFC en el hueco y reanuda.
