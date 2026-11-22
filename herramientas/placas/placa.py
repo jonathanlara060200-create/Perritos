@@ -43,6 +43,8 @@ NFC_TOL = 0.6       # holgura del hueco sobre el diámetro del sticker
 NFC_PARED = 1.2     # pared mínima alrededor del NFC
 LINEA_MIN = 0.5     # grosor mínimo de línea negra (1 pasada de boquilla 0.4; Arachne la imprime)
 ZONA_MIN = 0.5      # zonas de color más angostas que esto se vuelven negras
+SEPARACION_MIN = 0.5  # hueco mínimo entre dos partes negras que en el dibujo estaban separadas
+CUELLO_MAX = 0.6    # uniones más angostas que esto entre dos letras/islas negras se cortan
 AGUJERO_MIN = 4.5   # diámetro mínimo del agujero de la argolla
 PARED_ARGOLLA = 2.2 # pared mínima alrededor del agujero
 
@@ -302,6 +304,50 @@ def main(argv: list[str] | None = None) -> int:
             zonas[i] = g
     union_zonas = unary_union(list(zonas.values())) if zonas else Polygon()
     negro = silueta.difference(union_zonas)
+
+    # Separación mínima: dos partes negras que en el dibujo estaban SEPARADAS (dos letras, dos líneas)
+    # pero casi tocándose, se quedan con al menos SEPARACION_MIN mm de color entre ellas.
+    # Si no, al quitar los huecos imposibles de imprimir se pegarían (p. ej. la B y la Y de "TOBY").
+    oscuro = (cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) < 110) & pieza
+    piezas_negras = a_poligonos(oscuro, mm_px, H)
+    piezas_negras = sorted((p for p in getattr(piezas_negras, "geoms", [piezas_negras]) if p.area > 0.2), key=lambda p: -p.area)
+    # Letras que en el dibujo se llegan a tocar (B+Y): son "islas" (no la pieza grande del contorno)
+    # unidas por un cuello angosto. Si al quitar lo angosto se parten en dos, se tratan como dos piezas.
+    partidas = piezas_negras[:1]
+    for p in piezas_negras[1:]:
+        abierta = p.buffer(-CUELLO_MAX / 2).buffer(CUELLO_MAX / 2)
+        trozos = [t for t in getattr(abierta, "geoms", [abierta]) if t.area > 1.0]
+        partidas.extend(trozos if len(trozos) >= 2 else [p])
+    piezas_negras = partidas
+    separadas = 0
+    if zonas and len(piezas_negras) > 1:
+        from shapely.strtree import STRtree
+
+        arbol = STRtree(piezas_negras)
+        for i, p in enumerate(piezas_negras):
+            for j in arbol.query(p.buffer(0.9)):
+                j = int(j)
+                if j <= i:
+                    continue
+                q = piezas_negras[j]
+                d = p.distance(q)
+                # Huecos de hasta 0.9 mm se pueden perder al limpiar zonas angostas: se conservan
+                # y se dejan de al menos SEPARACION_MIN (o un poco más que el original).
+                if d >= 0.9:
+                    continue
+                s = (max(SEPARACION_MIN, d + 0.1) + d) / 2
+                lente = p.buffer(s).intersection(q.buffer(s)).intersection(silueta)
+                if lente.is_empty:
+                    continue
+                destino = max(zonas, key=lambda k: zonas[k].intersection(lente.buffer(0.3)).area)
+                if zonas[destino].intersection(lente.buffer(0.3)).area <= 0:
+                    continue
+                for k in zonas:  # que no se encimen dos colores
+                    zonas[k] = zonas[k].union(lente) if k == destino else zonas[k].difference(lente)
+                negro = negro.difference(lente)
+                separadas += 1
+    if separadas:
+        avisos.append(f"Separé {separadas} lugar(es) donde dos partes negras casi se tocaban (letras o líneas).")
 
     # Si sobran colores (más de los que caben en el CFS), el más chico se vuelve el color más parecido
     while len(zonas) + 1 > a.max_colores:
