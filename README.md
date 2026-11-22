@@ -42,6 +42,24 @@ Copia `.env.example` a `.env.local`:
 | `NEXT_PUBLIC_SUPABASE_URL` | Project Settings → API → Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave **anon/publishable** |
 | `NEXT_PUBLIC_SITE_URL` | URL pública final (se codifica en QR y NFC) |
+| `REPORTS_SECRET` | Secreto para los reportes de ubicación (ver abajo). En Cloudflare, tipo **Secret** |
+| `HYD_CRON_SECRET` | Secreto de los recordatorios de hidratación (ver `docs/HIDRATACION.md`). En Cloudflare, tipo **Secret** |
+
+### Secreto de reportes
+
+Los reportes de "encontré a tu mascota" solo los acepta la base si vienen del servidor de la app, y se
+limitan **por persona** (3 cada 10 min y 10 por día; tope de 200 al día por mascota). Para activarlo, en
+Supabase → SQL Editor ejecuta esto una vez; te devuelve el secreto (cópialo, no se vuelve a mostrar):
+
+```sql
+with s as (select replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '') as v)
+insert into public.webhook_secrets(name, secret_hash)
+select 'reports', encode(sha256(convert_to(v, 'UTF8')), 'hex') from s
+on conflict (name) do update set secret_hash = excluded.secret_hash
+returning (select v from s) as reports_secret;
+```
+
+Luego pégalo en Cloudflare como `REPORTS_SECRET` (Settings → Variables and Secrets → Add → Secret).
 
 **Este proyecto no usa la `service_role` en ningún lado. Nunca la pongas en el repositorio ni en variables públicas.**
 

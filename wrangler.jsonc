@@ -1,10 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "perritos",
-  "main": ".open-next/worker.js",
+  "main": "custom-worker.js",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "keep_vars": true,
+  // Recordatorios de hidratación cada 15 min (gratis en Cloudflare). Ver custom-worker.js.
+  "triggers": { "crons": ["*/15 * * * *"] },
   "vars": {
     "NEXT_PUBLIC_SITE_URL": "https://perritos.jonathanlara060200.workers.dev"
   },
