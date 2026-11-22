@@ -48,10 +48,11 @@ Si el NFC no cabe, el programa te dice qué `--alto` necesitas.
 1. Abre `placa.3mf`. Si pregunta "¿escalar a milímetros?" → **No** (ya está en mm).
 2. Las partes vienen en el filamento 1, 2, 3, 4 en el orden de `INSTRUCCIONES.txt`. Revisa que coincidan con las ranuras del CFS.
 
-**Plan B** si el 3MF no entrara bien: arrastra los 4 `.stl` juntos a Creality Print → "¿un objeto con varias partes?" **Sí** → "¿escalar?" **No**.
 3. Capa 0.2 mm · 3 paredes · relleno 15–20 % · torre de purga activada.
 4. Rebana → en la barra de capas ve a la **capa 8 (1.6 mm)** → clic derecho en el "+" → **Agregar pausa**.
 5. Cuando pause: mete el sticker NFC en el hueco y reanuda.
+
+**Plan B** si el 3MF no entrara bien: arrastra los 4 `.stl` juntos a Creality Print → "¿un objeto con varias partes?" **Sí** → "¿escalar?" **No**.
 
 ## Tamaños sugeridos
 
