@@ -8,6 +8,7 @@ Se configura una sola vez y después solo le mandas la foto + el nombre.
 1. Entra a gemini.google.com → menú izquierdo → **Gems** → **Nuevo Gem**.
 2. Nombre: `Placas AJolote ID`.
 3. En **Instrucciones**, pega TODO el bloque de abajo (está en inglés porque así Gemini respeta mejor las reglas de dibujo).
+   Es el mismo texto de `prompt_gemini.txt`, que usa `pedido.py`: si cambias uno, cambia el otro.
 4. Guarda.
 
 ```

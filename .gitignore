@@ -30,3 +30,7 @@ herramientas/placas/ejemplos/*/
 *.3mf
 __pycache__/
 *.pyc
+
+# Pedidos de placas y clave de Gemini
+herramientas/placas/pedidos/
+herramientas/placas/.env

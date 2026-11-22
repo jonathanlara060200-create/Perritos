@@ -1,0 +1,10 @@
+{
+  "_ayuda": "Ajustes por defecto de pedido.py. 'cfs' dice en qué ranura va cada función: cuerpo = color del pelo (cámbialo por perro en la ranura 2), acento = lengua/collar.",
+  "cfs": "negro=3,blanco=4,cuerpo=2,acento=1",
+  "alto_mm": 60,
+  "alto_max_mm": 75,
+  "nfc_mm": 20,
+  "intentos": 3,
+  "modelos_imagen": ["gemini-3-pro-image-preview", "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image"],
+  "modelos_texto": ["gemini-2.5-flash", "gemini-flash-latest"]
+}

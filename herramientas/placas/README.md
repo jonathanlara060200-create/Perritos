@@ -1,4 +1,27 @@
-# Generador de placas 3D (imagen de Gemini → 3MF multicolor)
+# Generador de placas 3D (foto o dibujo → 3MF multicolor)
+
+## ⚡ Lo rápido: un pedido de principio a fin
+
+```
+python pedido.py foto_del_perro.jpg LUCAS
+```
+1. Le manda la foto a **Gemini** con el prompt fijo (`prompt_gemini.txt`) y recibe el dibujo.
+2. **Revisa** que el nombre esté bien escrito y que haya argolla con hoyo; si no, le pide otro intento explicándole el error (hasta 3).
+3. Hace el **3MF** con las partes ya asignadas a tu CFS (`config.json`: negro=3, blanco=4, cuerpo=2, acento=1).
+4. Si el NFC no cabe, agranda la placa o usa un NFC más chico.
+
+Todo queda en `pedidos/AAAA-MM-DD_LUCAS/`. En Windows también puedes dar **doble clic a `hacer_placa.bat`**.
+
+- ¿Ya tienes el dibujo de Gemini? `python pedido.py --imagen dibujo.png LUCAS`
+- ¿Indicaciones extra? `--extra "collar azul cielo"` · ¿Otro tamaño? `--alto 55`
+- O mándale a Claude la imagen y el nombre: usa la skill `placa-perro` y te regresa los archivos.
+
+### Clave de Gemini (una vez)
+1. Sácala en https://aistudio.google.com/apikey
+2. Crea el archivo `.env` en esta carpeta con: `GEMINI_API_KEY=tu_clave` (no se sube a GitHub).
+3. Cada dibujo cuesta unos centavos de dólar en la API de Gemini (revisa la tarifa de tu cuenta).
+
+---
 
 Convierte una imagen como `ejemplos/lucas.png` en un modelo listo para la **Sparkx i7 + CFS** (4 colores):
 

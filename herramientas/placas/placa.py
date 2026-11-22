@@ -193,7 +193,7 @@ def a_trimesh(man: m3d.Manifold) -> trimesh.Trimesh:
 
 
 # ---------------------------------------------------------------- Principal
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Imagen de Gemini -> placa 3D multicolor (3MF/STL)")
     ap.add_argument("imagen")
     ap.add_argument("--alto", type=float, default=60, help="alto total de la placa en mm (def. 60)")
@@ -203,9 +203,11 @@ def main() -> int:
     ap.add_argument(
         "--ranuras",
         default="",
-        help='en qué ranura del CFS está cada color, ej. "negro=3,beige=2,blanco=4,rosa=1" (def. en orden 1,2,3,4)',
+        help='en qué ranura del CFS va cada color. Acepta colores (negro, blanco, rosa…) o funciones: '
+        'cuerpo = el color más grande que no es negro ni blanco, acento = los demás. '
+        'Ej. "negro=3,blanco=4,cuerpo=2,acento=1" (def. en orden 1,2,3,4)',
     )
-    a = ap.parse_args()
+    a = ap.parse_args(argv)
 
     ruta = Path(a.imagen)
     img = cv2.imread(str(ruta), cv2.IMREAD_COLOR)
@@ -377,11 +379,24 @@ def main() -> int:
     for par in filter(None, (x.strip() for x in a.ranuras.split(","))):
         color, _, num = par.partition("=")
         ranuras[color.strip().lower()] = int(num)
+    # Función de cada color: negro, blanco, cuerpo (el color más grande restante) o acento (los demás).
+    # Las piezas ya vienen ordenadas: negro primero y luego las zonas de mayor a menor área.
+    funciones, hay_cuerpo = {}, False
+    for nombre in piezas:
+        color = nombre.split("_", 1)[1]
+        if color in ("negro", "blanco"):
+            funciones[nombre] = color
+        elif not hay_cuerpo:
+            funciones[nombre], hay_cuerpo = "cuerpo", True
+        else:
+            funciones[nombre] = "acento"
     partes = []
     for k, (nombre, (man, hexa)) in enumerate(piezas.items(), start=1):
         t = a_trimesh(man.translate((dx, dy, 0)))
         t.export(salida / f"{nombre}.stl")
-        partes.append((nombre, t, ranuras.get(nombre.split("_", 1)[1], k)))
+        color = nombre.split("_", 1)[1]
+        ranura = ranuras.get(color, ranuras.get(funciones[nombre], k))
+        partes.append((nombre, t, ranura))
     guardar_3mf_orca(partes, salida / "placa.3mf", ruta.stem)
     guardar_3mf(partes, salida / "placa_respaldo.3mf", ruta.stem)
 
@@ -390,10 +405,13 @@ def main() -> int:
     info = {
         "tamano_mm": [round(ancho_mm, 1), round(alto_mm, 1), BASE + TAPA + RELIEVE],
         "peso_aprox_g": round(peso, 1),
-        "colores": {k: v for k, v in [(n.split("_", 1)[1], h) for n, (_, h) in piezas.items()]},
+        "colores": {n.split("_", 1)[1]: {"hex": piezas[n][1], "funcion": funciones[n], "filamento": r} for n, _, r in partes},
         "linea_negra_mm": round(ancho_despues, 2),
         "nfc": None if not nfc else {"diametro": a.nfc, "pausa_en_mm": NFC_Z1, "pausa_antes_de_capa": capa_pausa},
         "inclinacion_grados": None if incl is None else round(incl, 1),
+        "argolla_detectada": bool(agujeros),
+        "nfc_cabe": bool(nfc) or a.nfc <= 0,
+        "num_colores": len(piezas),
         "avisos": avisos,
     }
     (salida / "info.json").write_text(json.dumps(info, ensure_ascii=False, indent=2))
@@ -405,7 +423,7 @@ def main() -> int:
         "COLORES -> RANURA DEL CFS (ya vienen asignadas en placa.3mf):",
     ]
     for nombre, _, ranura in partes:
-        instr.append(f"  - {nombre:20s} {piezas[nombre][1]}  ->  filamento {ranura:02d}")
+        instr.append(f"  - {nombre:20s} {piezas[nombre][1]}  ({funciones[nombre]})  ->  filamento {ranura:02d}")
     instr += [
         "",
         "EN CREALITY PRINT:",
