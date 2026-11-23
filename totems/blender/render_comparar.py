@@ -86,11 +86,11 @@ def usar_cycles():
     scene.cycles.device = "CPU"; scene.cycles.samples = 48; scene.cycles.use_denoising = True
     scene.cycles.max_bounces = 4
     w = scene.world; w.use_nodes = True
-    bg = w.node_tree.nodes.get("Background"); bg.inputs[0].default_value = (0.95, 0.93, 0.90, 1); bg.inputs[1].default_value = 0.55
-    for nombre, loc, en in (("llave", (-250, -400, 450), 120000), ("relleno", (350, -300, 150), 45000), ("contra", (0, 300, 400), 40000)):
+    bg = w.node_tree.nodes.get("Background"); bg.inputs[0].default_value = (0.95, 0.93, 0.90, 1); bg.inputs[1].default_value = 0.30
+    for nombre, loc, en in (("llave", (-320, -260, 420), 260000), ("relleno", (380, -380, 120), 50000), ("contra", (60, 320, 380), 60000)):
         if bpy.data.objects.get(nombre):
             continue
-        ld = bpy.data.lights.new(nombre, "AREA"); ld.energy = en; ld.size = 300
+        ld = bpy.data.lights.new(nombre, "AREA"); ld.energy = en; ld.size = 160
         lo = bpy.data.objects.new(nombre, ld); lo.location = loc; scene.collection.objects.link(lo)
         c = lo.constraints.new("TRACK_TO"); t = bpy.data.objects.get("objetivo") or bpy.data.objects.new("objetivo", None)
         if t.name not in scene.collection.objects:

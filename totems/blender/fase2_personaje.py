@@ -152,7 +152,8 @@ paws_c = [c for c in rosas if c["cy"] > 390 and c is not head_c]
 lobes_c = [c for c in rosas if c is not head_c and all(c is not p for p in paws_c)]
 head = rej.de_ref(head_c["mask"])
 lobes = [rej.de_ref(c["mask"]) for c in lobes_c]
-fringes = rej.de_ref(m_mor)  # todos los flecos
+m_mor_s = cv2.morphologyEx(cv2.morphologyEx(m_mor.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)) > 0
+fringes = rej.de_ref(m_mor_s, 1.6)  # todos los flecos, contorno suavizado
 # ojos y boca: negro dentro de la cabeza (rellenando huecos de la cabeza)
 def rellenar(m):
     m = m.astype(np.uint8).copy(); ff = m.copy(); msk = np.zeros((m.shape[0] + 2, m.shape[1] + 2), np.uint8)
@@ -173,7 +174,7 @@ cara = head_full  # cabeza completa (incluye ojos y boca) para el domo
 
 axo = rej.de_ref(m_axo)
 backer = axo & ~pocket_gap
-paws_back = [rej.de_ref(c["mask"]) for c in R.componentes(m_man, 500)]
+paws_back = [rej.offset(rej.de_ref(c["mask"]), 0.9) for c in sorted([c for c in R.componentes(m_rosa) if c["cy"] > 390], key=lambda c: c["cx"])]
 paws_pink = [rej.de_ref(c["mask"]) for c in paws_c]
 paws_all = np.any(paws_back, axis=0) if paws_back else np.zeros_like(axo)
 bajo_manitas = rej.offset(paws_all, 0.5)
