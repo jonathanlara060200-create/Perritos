@@ -80,6 +80,7 @@ def coleccion(nombre):
 
 
 REGISTRO = []
+MAX_CARAS = 160000
 T0 = time.time()
 
 
@@ -94,15 +95,25 @@ def cuerpo(nombre, pieza, color, rej, dentro, top, bot, back_y=0.0):
     bot = np.broadcast_to(np.asarray(bot, float), dentro.shape)[r0:r1, c0:c1]
     v, f = R.malla(sub, dentro[r0:r1, c0:c1], top, bot)
     me = bpy.data.meshes.new(nombre)
-    me.from_pydata(v.tolist(), [], f.tolist())
-    me.validate(); me.update()
+    nv, nf = len(v), len(f)
+    me.vertices.add(nv); me.vertices.foreach_set("co", v.astype(np.float32).ravel())
+    me.loops.add(nf * 4); me.loops.foreach_set("vertex_index", f.astype(np.int32).ravel())
+    me.polygons.add(nf); me.polygons.foreach_set("loop_start", (np.arange(nf, dtype=np.int32) * 4))
+    me.update(calc_edges=True)
     import bmesh
     bm = bmesh.new(); bm.from_mesh(me)
-    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(0.5), verts=bm.verts, edges=bm.edges)
-    bmesh.ops.triangulate(bm, faces=bm.faces)
     bm.to_mesh(me); bm.free()
+    # reducir caras conservando la forma (decimado cuádrico); máx. ~MAX_CARAS triángulos
+    tmp = bpy.data.objects.new("tmp", me); scene.collection.objects.link(tmp)
+    ratio = min(1.0, MAX_CARAS / (2.0 * nf))
+    if ratio < 1.0:
+        mod = tmp.modifiers.new("dec", "DECIMATE"); mod.ratio = ratio; mod.use_collapse_triangulate = True
+        dg = bpy.context.evaluated_depsgraph_get()
+        me2 = bpy.data.meshes.new_from_object(tmp.evaluated_get(dg))
+        bpy.data.objects.remove(tmp); bpy.data.meshes.remove(me); me = me2; me.name = nombre
+    else:
+        bpy.data.objects.remove(tmp)
     ob = bpy.data.objects.new(nombre, me)
     ob.data.materials.append(material(color))
     coleccion(pieza).objects.link(ob)
