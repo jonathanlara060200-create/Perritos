@@ -164,12 +164,12 @@ ref = np.asarray(REF).astype(np.uint8)
 nombres = list(FIL)
 lab_ref = np.full((H, W), -1)
 for k, c in (("panel", "azul"), ("alga", "morado"), ("burbujas", "blanco"), ("ajolote_morado", "morado"),
-             ("ajolote_rosa", "rosa"), ("ajolote_contorno_negro", "negro"), ("texto_bolsillo", "blanco"), ("placas_qr", "blanco")):
+             ("ajolote_rosa", "rosa"), ("ajolote_contorno_negro", "negro"), ("texto_bolsillo", "blanco"), ("costuras", "amarillo")):
     lab_ref[ref_mask(k)] = nombres.index(c)
 pal = np.array([FIL[n] for n in nombres])
 lab_mod = np.argmin(((mod[..., None, :] - pal[None, None]) ** 2).sum(-1), -1)
 lab_mod[~fg_mod] = -1
-valid = zona & (lab_ref >= 0)
+valid = zona & (lab_ref >= 0) & ~ref_mask("placas_qr")   # las placas QR son calcomanía UV DTF
 coincide = valid & (lab_ref == lab_mod)
 res["coincidencia_color"] = round(float(coincide.sum() / max(valid.sum(), 1)), 3)
 diff = np.full((H, W, 3), 255, np.uint8)

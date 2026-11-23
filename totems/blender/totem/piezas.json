@@ -15,7 +15,13 @@
   "objeto": "ajolote_ojos",
   "pieza": "3_ajolote",
   "color": "negro",
-  "caras": 71716
+  "caras": 160000
+ },
+ {
+  "objeto": "ajolote_brillos",
+  "pieza": "3_ajolote",
+  "color": "blanco",
+  "caras": 11350
  },
  {
   "objeto": "ajolote_boca",
