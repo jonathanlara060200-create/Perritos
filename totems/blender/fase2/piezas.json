@@ -39,25 +39,25 @@
   "objeto": "manita_izq_contorno",
   "pieza": "3_manita_izq",
   "color": "negro",
-  "caras": 54254
+  "caras": 44238
  },
  {
   "objeto": "manita_izq_rosa",
   "pieza": "3_manita_izq",
   "color": "rosa_bajito",
-  "caras": 30908
+  "caras": 33666
  },
  {
   "objeto": "manita_der_contorno",
   "pieza": "3_manita_der",
   "color": "negro",
-  "caras": 57556
+  "caras": 43830
  },
  {
   "objeto": "manita_der_rosa",
   "pieza": "3_manita_der",
   "color": "rosa_bajito",
-  "caras": 30742
+  "caras": 33444
  },
  {
   "objeto": "burbuja_1",
