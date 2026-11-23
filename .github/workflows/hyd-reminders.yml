@@ -1,7 +1,7 @@
-name: Recordatorios de hidratación
+name: Recordatorios de hidratación (manual)
+# Los recordatorios automáticos ahora los dispara Cloudflare cada 15 min (ver custom-worker.js y
+# "triggers" en wrangler.jsonc). Este workflow queda solo para lanzarlos a mano si hace falta.
 on:
-  schedule:
-    - cron: "*/15 * * * *"   # GitHub puede retrasarlo unos minutos
   workflow_dispatch:
 
 jobs:

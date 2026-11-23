@@ -20,7 +20,7 @@ Cada llavero es una fila en `hyd_devices` con un código aleatorio (`HY-XXXXXXXX
 ## Variables de entorno
 Ya existentes: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Nuevas (solo para avisos push; sin ellas todo funciona menos las notificaciones):
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` (antes del build), `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:…`)
-- Secretos de GitHub Actions: `HYD_CRON_URL` (`https://TU-DOMINIO/api/hyd/cron`) y `HYD_CRON_SECRET`.
+- Secreto de Cloudflare `HYD_CRON_SECRET` (*Settings → Variables and Secrets*, tipo **Secret**). Cloudflare llama solo a `/api/hyd/cron` cada 15 min (`custom-worker.js` + `triggers` en `wrangler.jsonc`). El workflow de GitHub quedó solo para lanzarlo a mano.
 Genera todo en `/admin/hidratacion/avisos` (se crea en tu navegador) y ejecuta el SQL que muestra, una sola vez, en Supabase.
 
 ## Migraciones

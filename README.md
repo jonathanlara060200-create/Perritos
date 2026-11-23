@@ -4,7 +4,7 @@ La identidad física y digital de tu mascota: una placa impresa en 3D con su sil
 
 **Stack:** Next.js 15 (App Router) · TypeScript · Tailwind · Supabase (Postgres, Auth, Storage, RLS) · Cloudflare Workers (OpenNext) · PWA.
 
-> Estado: el código está escrito pero **todavía no se ha compilado ni probado** (el entorno donde se generó no pudo instalar paquetes). El primer paso es `npm install && npm run typecheck`; si hay errores, pásalos y se corrigen. Ver [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) para las decisiones de diseño.
+> Estado: en producción en Cloudflare Workers. Compila sin errores (`npm ci && npm run typecheck && npm run build`). Ver [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) para las decisiones de diseño.
 
 ---
 
@@ -17,11 +17,8 @@ La identidad física y digital de tu mascota: una placa impresa en 3D con su sil
 ## 2. Supabase
 
 1. Crea el proyecto.
-2. En **SQL Editor**, ejecuta en este orden el contenido de:
-   1. `supabase/migrations/20261021000001_schema.sql`
-   2. `supabase/migrations/20261021000002_rls.sql`
-   3. `supabase/migrations/20261021000003_functions.sql`
-   4. `supabase/seed.sql` (productos y colores iniciales; los precios se editan después en `/admin/products`)
+2. En **SQL Editor**, ejecuta **todos** los archivos de `supabase/migrations/` en orden (el nombre empieza con la fecha, así que el orden alfabético es el correcto) y al final `supabase/seed.sql` (productos y colores iniciales; los precios se editan después en `/admin/products`).
+   Cuando se agregue una migración nueva, solo hay que correr esa.
    
    Alternativa con la CLI: `supabase link --project-ref TU_REF && supabase db push`.
 3. **Authentication → URL Configuration**
@@ -45,6 +42,24 @@ Copia `.env.example` a `.env.local`:
 | `NEXT_PUBLIC_SUPABASE_URL` | Project Settings → API → Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave **anon/publishable** |
 | `NEXT_PUBLIC_SITE_URL` | URL pública final (se codifica en QR y NFC) |
+| `REPORTS_SECRET` | Secreto para los reportes de ubicación (ver abajo). En Cloudflare, tipo **Secret** |
+| `HYD_CRON_SECRET` | Secreto de los recordatorios de hidratación (ver `docs/HIDRATACION.md`). En Cloudflare, tipo **Secret** |
+
+### Secreto de reportes
+
+Los reportes de "encontré a tu mascota" solo los acepta la base si vienen del servidor de la app, y se
+limitan **por persona** (3 cada 10 min y 10 por día; tope de 200 al día por mascota). Para activarlo, en
+Supabase → SQL Editor ejecuta esto una vez; te devuelve el secreto (cópialo, no se vuelve a mostrar):
+
+```sql
+with s as (select replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '') as v)
+insert into public.webhook_secrets(name, secret_hash)
+select 'reports', encode(sha256(convert_to(v, 'UTF8')), 'hex') from s
+on conflict (name) do update set secret_hash = excluded.secret_hash
+returning (select v from s) as reports_secret;
+```
+
+Luego pégalo en Cloudflare como `REPORTS_SECRET` (Settings → Variables and Secrets → Add → Secret).
 
 **Este proyecto no usa la `service_role` en ningún lado. Nunca la pongas en el repositorio ni en variables públicas.**
 
@@ -68,7 +83,7 @@ Se usa `@opennextjs/cloudflare` (Workers con assets estáticos).
 - **Redirects:** no hay redirects a nivel de plataforma; `/admin/qr` y `/admin/nfc` redirigen dentro de la app a `/admin/tags`.
 - **GitHub:** conecta el repositorio en *Workers & Pages → Create → Import a repository* para desplegar con cada push.
 
-Cosas a verificar en el primer despliegue (no pude probarlas): la generación de QR PNG (`/qr/[id]?format=png`) en Workers, y que `middleware.ts` corra bien con OpenNext.
+**Dominio:** la URL de `NEXT_PUBLIC_SITE_URL` queda grabada en cada NFC y QR. Pasa a tu dominio propio antes de vender más placas (y deja el `workers.dev` funcionando para las placas viejas).
 
 ## 6. PWA
 

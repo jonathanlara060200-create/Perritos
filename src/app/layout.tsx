@@ -14,6 +14,15 @@ export const metadata: Metadata = {
   applicationName: 'AJolote ID',
   appleWebApp: { capable: true, title: 'AJolote ID', statusBarStyle: 'default' },
   icons: { icon: '/icons/icon-192.png', apple: '/icons/apple-touch-icon.png' },
+  openGraph: {
+    type: 'website',
+    locale: 'es_MX',
+    siteName: 'AJolote ID',
+    title: 'AJolote ID · Ajolote de Bolsillo',
+    description: 'La identidad física y digital de tu mascota. Una placa con su silueta, NFC y QR para ayudarla a volver a casa.',
+    images: [{ url: '/logo-512.png', width: 512, height: 512, alt: 'AJolote ID' }],
+  },
+  twitter: { card: 'summary', images: ['/logo-512.png'] },
 }
 
 export const viewport: Viewport = {

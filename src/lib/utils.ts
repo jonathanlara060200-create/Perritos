@@ -83,7 +83,9 @@ export const telLink = (number: string) => `tel:+${digits(number).length === 10 
 /** Evita open-redirects: solo rutas internas. */
 export function safeNext(v: FormDataEntryValue | string | null | undefined, fallback = '/dashboard') {
   const s = typeof v === 'string' ? v : ''
-  return s.startsWith('/') && !s.startsWith('//') ? s : fallback
+  // Los navegadores tratan "\" como "/" (así "/\otro.com" = "//otro.com"), y tabs/saltos de línea se ignoran.
+  if (!s.startsWith('/') || s.startsWith('//') || /[\\\u0000-\u001f\u007f]/.test(s)) return fallback
+  return s
 }
 
 export const str = (v: FormDataEntryValue | null) => {

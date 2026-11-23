@@ -1,0 +1,36 @@
+# Dependencias
+node_modules/
+
+# Builds
+.next/
+.open-next/
+.wrangler/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Variables de entorno (claves): nunca al repositorio
+.env
+.env*.local
+.dev.vars
+
+# Sistema / editores
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Salidas del generador de placas
+herramientas/placas/ejemplos/*/
+*.3mf
+__pycache__/
+*.pyc
+
+# Pedidos de placas y clave de Gemini
+herramientas/placas/pedidos/
+herramientas/placas/.env
