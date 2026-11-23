@@ -2,3 +2,5 @@
 salida/*/stl/
 salida/*/ensamble/
 __pycache__/
+blender/fase*/stl/
+blender/fase*/*.blend1
