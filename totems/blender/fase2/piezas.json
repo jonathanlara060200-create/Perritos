@@ -1,0 +1,134 @@
+[
+ {
+  "objeto": "ajolote_contorno",
+  "pieza": "3_ajolote",
+  "color": "negro",
+  "caras": 160000
+ },
+ {
+  "objeto": "ajolote_cabeza",
+  "pieza": "3_ajolote",
+  "color": "rosa_bajito",
+  "caras": 160000
+ },
+ {
+  "objeto": "ajolote_ojos",
+  "pieza": "3_ajolote",
+  "color": "negro",
+  "caras": 59954
+ },
+ {
+  "objeto": "ajolote_boca",
+  "pieza": "3_ajolote",
+  "color": "negro",
+  "caras": 6554
+ },
+ {
+  "objeto": "ajolote_branquias_rosa",
+  "pieza": "3_ajolote",
+  "color": "rosa_bajito",
+  "caras": 160000
+ },
+ {
+  "objeto": "ajolote_branquias_morado",
+  "pieza": "3_ajolote",
+  "color": "morado",
+  "caras": 160000
+ },
+ {
+  "objeto": "manita_izq_contorno",
+  "pieza": "3_manita_izq",
+  "color": "negro",
+  "caras": 54254
+ },
+ {
+  "objeto": "manita_izq_rosa",
+  "pieza": "3_manita_izq",
+  "color": "rosa_bajito",
+  "caras": 30908
+ },
+ {
+  "objeto": "manita_der_contorno",
+  "pieza": "3_manita_der",
+  "color": "negro",
+  "caras": 57556
+ },
+ {
+  "objeto": "manita_der_rosa",
+  "pieza": "3_manita_der",
+  "color": "rosa_bajito",
+  "caras": 30742
+ },
+ {
+  "objeto": "burbuja_1",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 47718
+ },
+ {
+  "objeto": "burbuja_2",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 5996
+ },
+ {
+  "objeto": "burbuja_3",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 48538
+ },
+ {
+  "objeto": "burbuja_4",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 17340
+ },
+ {
+  "objeto": "burbuja_5",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 7074
+ },
+ {
+  "objeto": "burbuja_6",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 41392
+ },
+ {
+  "objeto": "burbuja_7",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 34236
+ },
+ {
+  "objeto": "alga",
+  "pieza": "3_alga",
+  "color": "morado",
+  "caras": 160000
+ },
+ {
+  "objeto": "PROVISIONAL_panel",
+  "pieza": "0_provisional",
+  "color": "azul_cielo",
+  "caras": 160000
+ },
+ {
+  "objeto": "PROVISIONAL_bolsillo",
+  "pieza": "0_provisional",
+  "color": "azul_cielo",
+  "caras": 160000
+ },
+ {
+  "objeto": "PROVISIONAL_texto",
+  "pieza": "0_provisional",
+  "color": "blanco",
+  "caras": 160000
+ },
+ {
+  "objeto": "PROVISIONAL_placas_qr",
+  "pieza": "0_provisional",
+  "color": "blanco",
+  "caras": 160000
+ }
+]

@@ -62,14 +62,14 @@ class Rejilla:
 
     def dist(self, m: np.ndarray) -> np.ndarray:
         """Distancia (mm) de cada celda interior al borde."""
-        return cv2.distanceTransform(m.astype(np.uint8), cv2.DIST_L2, 5) * self.res
+        return cv2.distanceTransform(m.astype(np.uint8), cv2.DIST_L2, cv2.DIST_MASK_PRECISE) * self.res
 
     def offset(self, m: np.ndarray, mm: float) -> np.ndarray:
         """Crece (+) o encoge (−) una máscara en mm."""
         if mm == 0:
             return m.copy()
         if mm > 0:
-            return cv2.distanceTransform((~m).astype(np.uint8), cv2.DIST_L2, 5) * self.res <= mm
+            return cv2.distanceTransform((~m).astype(np.uint8), cv2.DIST_L2, cv2.DIST_MASK_PRECISE) * self.res <= mm
         return self.dist(m) > -mm
 
 
@@ -83,6 +83,16 @@ def almohada(d: np.ndarray, alto: float, r: float, domo: float = 0.0, d_max: flo
         t = np.clip((d - r) / max(dm - r, 1e-3), 0, 1)
         h = h + domo * np.sin(t * np.pi / 2)
     return h
+
+
+def suavizar(top: np.ndarray, dentro: np.ndarray, sigma_celdas: float = 1.5) -> np.ndarray:
+    """Suaviza las alturas solo dentro de la pieza (convolución normalizada) para quitar escalones."""
+    if sigma_celdas <= 0:
+        return top
+    w = dentro.astype(np.float32)
+    num = cv2.GaussianBlur((np.where(dentro, top, 0)).astype(np.float32), (0, 0), sigma_celdas)
+    den = cv2.GaussianBlur(w, (0, 0), sigma_celdas)
+    return np.where(dentro, num / np.maximum(den, 1e-6), top)
 
 
 def sin_pellizcos(m: np.ndarray) -> np.ndarray:

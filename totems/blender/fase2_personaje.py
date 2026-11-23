@@ -93,7 +93,9 @@ def cuerpo(nombre, pieza, color, rej, dentro, top, bot, back_y=0.0):
     sub = types.SimpleNamespace(x0=rej.x0 + c0 * rej.res, y1=rej.y1 - r0 * rej.res, res=rej.res)
     top = np.broadcast_to(np.asarray(top, float), dentro.shape)[r0:r1, c0:c1]
     bot = np.broadcast_to(np.asarray(bot, float), dentro.shape)[r0:r1, c0:c1]
-    v, f = R.malla(sub, dentro[r0:r1, c0:c1], top, bot)
+    din = dentro[r0:r1, c0:c1]
+    top = R.suavizar(top, din, 1.6); bot = R.suavizar(bot, din, 1.6)
+    v, f = R.malla(sub, din, top, bot)
     me = bpy.data.meshes.new(nombre)
     nv, nf = len(v), len(f)
     me.vertices.add(nv); me.vertices.foreach_set("co", v.astype(np.float32).ravel())
@@ -114,6 +116,11 @@ def cuerpo(nombre, pieza, color, rej, dentro, top, bot, back_y=0.0):
         bpy.data.objects.remove(tmp); bpy.data.meshes.remove(me); me = me2; me.name = nombre
     else:
         bpy.data.objects.remove(tmp)
+    me.shade_smooth()
+    try:
+        me.set_sharp_from_angle(angle=math.radians(40))
+    except Exception:
+        pass
     ob = bpy.data.objects.new(nombre, me)
     ob.data.materials.append(material(color))
     coleccion(pieza).objects.link(ob)

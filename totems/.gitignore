@@ -4,3 +4,4 @@ salida/*/ensamble/
 __pycache__/
 blender/fase*/stl/
 blender/fase*/*.blend1
+blender/fase*/*.blend

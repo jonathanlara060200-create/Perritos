@@ -34,6 +34,9 @@ sh.light = "STUDIO"; sh.color_type = "MATERIAL"
 sh.show_cavity = True; sh.cavity_type = "BOTH"; sh.curvature_ridge_factor = 1.0; sh.curvature_valley_factor = 1.0
 sh.show_shadows = True; sh.shadow_intensity = 0.35
 sh.show_specular_highlight = True
+sh.background_type = "VIEWPORT"; sh.background_color = (0.96, 0.94, 0.91)
+for m in bpy.data.materials:   # Workbench usa diffuse_color en espacio de pantalla
+    m.diffuse_color = (*m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value[:3], 1) if m.use_nodes else m.diffuse_color
 scene.display.render_aa = "16"
 scene.render.film_transparent = False
 scene.world = scene.world or bpy.data.worlds.new("mundo")
@@ -78,17 +81,41 @@ def persp(nombre, loc, target, lens=70, res=(1400, 1400)):
     cam.constraints.remove(con)
 
 
-# vistas ortográficas (front: cámara en −Y mirando a +Y)
+def usar_cycles():
+    scene.render.engine = "CYCLES"
+    scene.cycles.device = "CPU"; scene.cycles.samples = 48; scene.cycles.use_denoising = True
+    scene.cycles.max_bounces = 4
+    w = scene.world; w.use_nodes = True
+    bg = w.node_tree.nodes.get("Background"); bg.inputs[0].default_value = (0.95, 0.93, 0.90, 1); bg.inputs[1].default_value = 0.55
+    for nombre, loc, en in (("llave", (-250, -400, 450), 120000), ("relleno", (350, -300, 150), 45000), ("contra", (0, 300, 400), 40000)):
+        if bpy.data.objects.get(nombre):
+            continue
+        ld = bpy.data.lights.new(nombre, "AREA"); ld.energy = en; ld.size = 300
+        lo = bpy.data.objects.new(nombre, ld); lo.location = loc; scene.collection.objects.link(lo)
+        c = lo.constraints.new("TRACK_TO"); t = bpy.data.objects.get("objetivo") or bpy.data.objects.new("objetivo", None)
+        if t.name not in scene.collection.objects:
+            scene.collection.objects.link(t)
+        t.location = (0, 0, 100); c.target = t; c.track_axis = "TRACK_NEGATIVE_Z"; c.up_axis = "UP_Y"
+
+
+def usar_workbench():
+    scene.render.engine = "BLENDER_WORKBENCH"
+
+
+# vistas: frente y 3/4 en Cycles (color real); el resto en Workbench (rápido)
+usar_cycles()
 orto("frente.png", (xc_mm, -800, zc_mm), (math.radians(90), 0, 0))
+persp("tres_cuartos.png", (-330, -520, 260), (0, 0, 100))
+usar_workbench()
 orto("espalda.png", (-xc_mm, 800, zc_mm), (math.radians(90), 0, math.radians(180)))
 orto("lado_izq.png", (-800, 20, zc_mm), (math.radians(90), 0, math.radians(-90)), res=(int(H * 0.6), H))
 orto("lado_der.png", (800, 20, zc_mm), (math.radians(90), 0, math.radians(90)), res=(int(H * 0.6), H))
-persp("tres_cuartos.png", (-330, -520, 260), (0, 0, 100))
 
 if solo_render:
     sys.exit(0)
 
 # render plano (colores sin luz) para medir contra la referencia
+sh.background_color = (1, 0, 1)   # magenta: fondo inconfundible
 sh.light = "FLAT"; sh.show_cavity = False; sh.show_shadows = False; sh.show_specular_highlight = False
 scene.display.render_aa = "OFF"
 orto("plano_frente.png", (xc_mm, -800, zc_mm), (math.radians(90), 0, 0))
@@ -97,8 +124,7 @@ orto("plano_frente.png", (xc_mm, -800, zc_mm), (math.radians(90), 0, 0))
 FIL = {"azul": (159, 203, 234), "rosa": (246, 183, 201), "morado": (155, 123, 196), "negro": (34, 34, 34),
        "blanco": (255, 255, 255), "amarillo": (247, 227, 154)}
 mod = np.asarray(Image.open(out / "plano_frente.png").convert("RGB")).astype(int)
-bgcol = mod[2, 2]
-fg_mod = np.abs(mod - bgcol).sum(-1) > 12
+fg_mod = ~((mod[..., 0] > 230) & (mod[..., 1] < 30) & (mod[..., 2] > 230))
 
 
 def clase_modelo(nombre):
@@ -132,12 +158,25 @@ res["alga"] = iou(clase_modelo("morado") & (np.arange(W)[None, :] > CX + 45 * PX
 json.dump(res, open(out / "comparacion.json", "w"), indent=1)
 
 ref = np.asarray(REF).astype(np.uint8)
+# etiquetas por color: referencia (de las máscaras de la Fase 1) vs. modelo (color más cercano)
+nombres = list(FIL)
+lab_ref = np.full((H, W), -1)
+for k, c in (("panel", "azul"), ("alga", "morado"), ("burbujas", "blanco"), ("ajolote_morado", "morado"),
+             ("ajolote_rosa", "rosa"), ("ajolote_contorno_negro", "negro"), ("texto_bolsillo", "blanco"), ("placas_qr", "blanco")):
+    lab_ref[ref_mask(k)] = nombres.index(c)
+pal = np.array([FIL[n] for n in nombres])
+lab_mod = np.argmin(((mod[..., None, :] - pal[None, None]) ** 2).sum(-1), -1)
+lab_mod[~fg_mod] = -1
+valid = zona & (lab_ref >= 0)
+coincide = valid & (lab_ref == lab_mod)
+res["coincidencia_color"] = round(float(coincide.sum() / max(valid.sum(), 1)), 3)
 diff = np.full((H, W, 3), 255, np.uint8)
-diff[ref_fg & zona & ~fg_mod] = (230, 40, 40)
-diff[fg_mod & zona & ~ref_fg] = (0, 190, 210)
-diff[fg_mod & ref_fg & zona] = (200, 200, 200)
+diff[valid & coincide] = (205, 205, 205)
+diff[valid & ~coincide] = (230, 40, 40)
+diff[fg_mod & zona & (lab_ref < 0)] = (0, 190, 210)
 fr = np.asarray(Image.open(out / "frente.png").convert("RGB"))
 lam = np.concatenate([ref, fr, diff], 1)
 Image.fromarray(lam).save(out / "comparacion.png")
 Image.fromarray(lam).resize((lam.shape[1] // 2, lam.shape[0] // 2)).save(out / "comparacion_chica.png")
+json.dump(res, open(out / "comparacion.json", "w"), indent=1)
 print("COMPARACION", json.dumps(res))
