@@ -18,6 +18,10 @@ export async function signIn(fd: FormData) {
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email: email.data, password })
   if (error) go(`/login?next=${encodeURIComponent(next)}`, 'error', 'Correo o contraseña incorrectos.')
+  if (next === '/dashboard') {
+    const { data: staff } = await supabase.rpc('is_clicker_staff')
+    if (staff === true) redirect('/clickers')
+  }
   redirect(next)
 }
 

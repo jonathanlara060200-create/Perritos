@@ -13,6 +13,7 @@ export const config = {
     '/orders/:path*',
     '/lost/:path*',
     '/admin/:path*',
+    '/clickers/:path*',
     '/hidratacion/:path*',
     '/login',
     '/register',

@@ -1,13 +1,24 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requireAdmin } from '@/lib/auth'
+import { requireAdmin, requireClickerAccess } from '@/lib/auth'
 import { ITEM_TYPE, CUSTOM_STATUS, PARTS, PRICE_PER_LETTER, countPieces, officialColor, type PartKey } from '@/lib/clickers'
 import { go } from '@/lib/flash'
 import { createClient } from '@/lib/supabase/server'
 import { str } from '@/lib/utils'
 
 const BACK = '/admin/clickers'
+
+/** El admin vuelve a /admin/clickers; el equipo de clickers a /clickers. */
+async function access() {
+  const who = await requireClickerAccess()
+  return { staff: who === 'staff', back: who === 'staff' ? '/clickers' : BACK }
+}
+
+function refresh() {
+  revalidatePath(BACK)
+  revalidatePath('/clickers')
+}
 
 function readFields(fd: FormData) {
   const money = (k: string) => Math.min(9_999_999, Math.max(0, Number(String(fd.get(k) ?? '').replace(/[$,\s]/g, '')) || 0))
@@ -35,34 +46,36 @@ function readFields(fd: FormData) {
 }
 
 export async function createCustomOrder(fd: FormData) {
-  await requireAdmin()
+  const { staff, back } = await access()
   const row = readFields(fd)
-  if (!row.customer_name) go(BACK, 'error', 'Escribe quién hizo el pedido.')
+  if (staff) row.item_type = 'clicker'
+  if (!row.customer_name) go(back, 'error', 'Escribe quién hizo el pedido.')
   const supabase = await createClient()
   const { error } = await supabase.from('custom_orders').insert(row)
-  if (error) go(BACK, 'error', 'No pudimos guardar el pedido. ¿Ya corriste la migración custom_orders en Supabase?')
-  revalidatePath(BACK)
-  go(BACK, 'ok', 'Pedido guardado.')
+  if (error) go(back, 'error', 'No pudimos guardar el pedido. ¿Ya corriste la migración custom_orders en Supabase?')
+  refresh()
+  go(back, 'ok', 'Pedido guardado.')
 }
 
 export async function updateCustomOrder(id: string, fd: FormData) {
-  await requireAdmin()
+  const { staff, back } = await access()
   const row = readFields(fd)
-  if (!row.customer_name) go(BACK, 'error', 'Escribe quién hizo el pedido.')
+  if (staff) row.item_type = 'clicker'
+  if (!row.customer_name) go(back, 'error', 'Escribe quién hizo el pedido.')
   const status = String(fd.get('status') ?? 'pending')
   const supabase = await createClient()
   const { error } = await supabase
     .from('custom_orders')
     .update({ ...row, status: status in CUSTOM_STATUS ? status : 'pending' })
     .eq('id', id)
-  if (error) go(BACK, 'error', 'No pudimos actualizar el pedido.')
-  revalidatePath(BACK)
-  go(BACK, 'ok', 'Pedido actualizado.')
+  if (error) go(back, 'error', 'No pudimos actualizar el pedido.')
+  refresh()
+  go(back, 'ok', 'Pedido actualizado.')
 }
 
 /** Marca/desmarca una parte (base, teclas, letras). Mueve el estado solo cuando tiene sentido. */
 export async function togglePart(id: string, part: PartKey) {
-  await requireAdmin()
+  await access()
   if (!PARTS.some((p) => p.key === part)) return
   const supabase = await createClient()
   const { data: cur } = await supabase
@@ -90,25 +103,25 @@ export async function togglePart(id: string, part: PartKey) {
   else if (any && status === 'pending') status = 'in_progress'
 
   await supabase.from('custom_orders').update({ ...next, status }).eq('id', id)
-  revalidatePath(BACK)
+  refresh()
 }
 
 export async function setCustomStatus(id: string, status: string) {
-  await requireAdmin()
+  await access()
   if (!(status in CUSTOM_STATUS)) return
   const supabase = await createClient()
   await supabase.from('custom_orders').update({ status }).eq('id', id)
-  revalidatePath(BACK)
+  refresh()
 }
 
 /** Marca el pedido como pagado por completo (paid_amount = price). */
 export async function markCustomPaid(id: string) {
-  await requireAdmin()
+  await access()
   const supabase = await createClient()
   const { data: cur } = await supabase.from('custom_orders').select('price').eq('id', id).single()
   if (!cur) return
   await supabase.from('custom_orders').update({ paid_amount: cur.price }).eq('id', id)
-  revalidatePath(BACK)
+  refresh()
 }
 
 export async function deleteCustomOrder(id: string) {
@@ -116,6 +129,6 @@ export async function deleteCustomOrder(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.from('custom_orders').delete().eq('id', id)
   if (error) go(BACK, 'error', 'No pudimos borrar el pedido.')
-  revalidatePath(BACK)
+  refresh()
   go(BACK, 'ok', 'Pedido borrado.')
 }

@@ -30,7 +30,7 @@ function ColorSelect({ name, value }: { name: string; value?: string | null }) {
 }
 
 /** Campos del pedido (sirven para crear y para editar). */
-export function ClickerFields({ v = {}, withStatus = false }: { v?: ClickerFormValues; withStatus?: boolean }) {
+export function ClickerFields({ v = {}, withStatus = false, onlyClicker = false }: { v?: ClickerFormValues; withStatus?: boolean; onlyClicker?: boolean }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <div>
@@ -42,14 +42,18 @@ export function ClickerFields({ v = {}, withStatus = false }: { v?: ClickerFormV
         <input name="contact" defaultValue={v.contact ?? ''} maxLength={120} className="input" />
       </div>
 
-      <div>
-        <label className="label">Tipo</label>
-        <select name="item_type" defaultValue={v.item_type ?? 'clicker'} className="input">
-          {Object.entries(ITEM_TYPE).map(([k, l]) => (
-            <option key={k} value={k}>{l}</option>
-          ))}
-        </select>
-      </div>
+      {onlyClicker ? (
+        <input type="hidden" name="item_type" value="clicker" />
+      ) : (
+        <div>
+          <label className="label">Tipo</label>
+          <select name="item_type" defaultValue={v.item_type ?? 'clicker'} className="input">
+            {Object.entries(ITEM_TYPE).map(([k, l]) => (
+              <option key={k} value={k}>{l}</option>
+            ))}
+          </select>
+        </div>
+      )}
       <div>
         <label className="label">Fecha de entrega</label>
         <input type="date" name="due_date" defaultValue={v.due_date ?? ''} className="input" />
