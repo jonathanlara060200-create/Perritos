@@ -381,12 +381,13 @@ for x in BTN_X:
 L = SLOPE_D * math.sqrt(2)
 rs = R.Rejilla(-BASE_W / 2, BASE_W / 2, 0, L, res=0.15)
 txt_rampa = rs.texto([(CFG["base_texto"], 9.0, 0, L / 2)], FONT_B)
-for lado in (-1, 1):            # rayitas decorativas
-    for ang in (-25, 0, 25):
-        cx0 = lado * 72; cy0 = L / 2
-        dx, dy = math.cos(math.radians(ang)) * lado, math.sin(math.radians(ang))
-        for t in np.linspace(0, 6, 25):
-            txt_rampa |= ((rs.X - (cx0 + dx * t)) ** 2 + (rs.Y - (cy0 + dy * t)) ** 2) <= 0.75 ** 2
+for lado in (-1, 1):            # rayitas decorativas: 3 trazos que se abren hacia afuera del texto
+    for ang in (-35, 0, 35):
+        a = math.radians(ang)
+        dx, dy = math.cos(a) * lado, math.sin(a)
+        cx0, cy0 = lado * 60, L / 2                       # centro del abanico, junto al texto
+        for t in np.linspace(5.0, 10.5, 25):
+            txt_rampa |= ((rs.X - (cx0 + dx * t)) ** 2 + (rs.Y - (cy0 + dy * t)) ** 2) <= 0.8 ** 2
 u = (rb.Y - BASE_Y0) * math.sqrt(2)                                           # distancia a lo largo de la rampa
 iu = np.clip(((L - u) / rs.res).astype(int), 0, rs.R - 1)
 ix = np.clip(((rb.X - rs.x0) / rs.res).astype(int), 0, rs.C - 1)

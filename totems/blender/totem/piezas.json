@@ -160,5 +160,53 @@
   "pieza": "2_bolsillo",
   "color": "negro",
   "caras": 160000
+ },
+ {
+  "objeto": "base",
+  "pieza": "4_base",
+  "color": "azul_cielo",
+  "caras": 160000
+ },
+ {
+  "objeto": "base_texto",
+  "pieza": "4_base",
+  "color": "blanco",
+  "caras": 25466
+ },
+ {
+  "objeto": "boton_instagram",
+  "pieza": "5_boton_instagram",
+  "color": "morado",
+  "caras": 160000
+ },
+ {
+  "objeto": "boton_instagram_icono",
+  "pieza": "5_boton_instagram",
+  "color": "blanco",
+  "caras": 34864
+ },
+ {
+  "objeto": "boton_whatsapp",
+  "pieza": "5_boton_whatsapp",
+  "color": "rosa_bajito",
+  "caras": 160000
+ },
+ {
+  "objeto": "boton_whatsapp_icono",
+  "pieza": "5_boton_whatsapp",
+  "color": "blanco",
+  "caras": 28098
+ },
+ {
+  "objeto": "boton_credit-card",
+  "pieza": "5_boton_credit-card",
+  "color": "blanco",
+  "caras": 160000
+ },
+ {
+  "objeto": "boton_credit-card_icono",
+  "pieza": "5_boton_credit-card",
+  "color": "azul_cielo",
+  "caras": 45818
  }
 ]
