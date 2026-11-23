@@ -1,0 +1,40 @@
+# Datos del negocio y del taller. Las habilidades en .claude/skills/ leen este archivo.
+negocio:
+  nombre: "Ajolote de Bolsillo"
+  lema: "Tú lo imaginas, nosotros lo imprimimos"
+  web: "https://ajolotedebolsillo.mitiendanube.com"
+  instagram: "https://instagram.com/ajolote_de_bolsillo"
+  whatsapp: "https://wa.me/523111675907"
+  facebook: "https://www.facebook.com/share/1FnDfJj7tB/"
+  ciudad: "Guadalajara"
+
+impresora:
+  modelo: "Creality SparkX i7 + CFS Lite"
+  volumen_mm: [260, 260, 255]
+  area_util_mm: [240, 240, 245]   # margen para purga y bordes
+  max_colores_por_placa: 4
+
+filamentos_pla:   # solo estos existen en el taller
+  rosa_bajito: "#F6B7C9"
+  azul_cielo: "#9FCBEA"
+  morado: "#9B7BC4"
+  amarillo_pastel: "#F7E39A"
+  negro: "#222222"
+  blanco: "#FFFFFF"
+  beige: "#E9D8BC"
+  gris: "#9A9A9A"
+
+reglas_diseno:
+  pared_min_mm: 1.2
+  trazo_min_mm: 0.8
+  tolerancia_ensamble_mm: 0.2
+  relieve_color_mm: [0.6, 1.0]
+  qr_modulo_min_mm: 1.5
+  qr_zona_silenciosa_modulos: 4
+  nfc_tag_diametro_mm: 25
+
+costos:   # llenar en la Etapa 5
+  filamento_mxn_por_kg: null
+  luz_mxn_por_hora: null
+  nfc_mxn_por_pieza: null
+  mano_de_obra_mxn_por_hora: null
