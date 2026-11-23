@@ -189,10 +189,41 @@ paws_pink = [rej.de_ref(c["mask"]) for c in paws_c]
 paws_all = np.any(paws_back, axis=0) if paws_back else np.zeros_like(axo)
 bajo_manitas = rej.offset(paws_all, 0.5)
 
+# ---------------------------------------------------------------- FASE 5: pernos de ensamble (a presión)
+import yaml as _y  # noqa: E402
+AJUSTE = _y.safe_load(open(HERE.parent / "config" / "totem_ajolote.yaml", encoding="utf-8")).get("ajuste_pernos", 0.1)
+PERNOS_PANEL = []        # (x, y, diámetro, alto) que salen de la cara del panel
+PERNOS_BOLSILLO = []     # pernos que salen del bolsillo (para las manitas)
+
+
+def elegir_pernos(rj, zona, n, borde, sep):
+    """Elige hasta n puntos dentro de `zona` lejos del borde (≥ borde mm) y separados ≥ sep mm entre sí."""
+    d = rj.dist(zona).copy()
+    pts = []
+    for _ in range(n):
+        i = int(np.argmax(d))
+        if d.flat[i] < borde:
+            break
+        r, c = np.unravel_index(i, d.shape)
+        x, y = float(rj.X[r, c]), float(rj.Y[r, c]); pts.append((x, y))
+        d[(rj.X - x) ** 2 + (rj.Y - y) ** 2 < sep ** 2] = 0
+    return pts
+
+
+def hoyos(rj, pts, diam):
+    m = np.zeros(rj.X.shape, bool)
+    for x, y in pts:
+        m |= (rj.X - x) ** 2 + (rj.Y - y) ** 2 <= (diam / 2) ** 2
+    return m
+
+
 # alturas del ajolote
 z_back = BACKER_T
+p_axo = elegir_pernos(rej, cara & backer, 3, 5.0, 18.0)
+PERNOS_PANEL += [(x, y, 4.0, 1.6) for x, y in p_axo]
+h_axo = hoyos(rej, p_axo, 4.0 + AJUSTE)
 cuerpo("ajolote_contorno", "3_ajolote", "negro", rej, backer,
-       R.almohada(rej.dist(backer), BACKER_T, 0.8), 0.0)
+       R.almohada(rej.dist(backer), BACKER_T, 0.8), np.where(h_axo, 1.8, 0.0))
 
 d_head = rej.dist(cara)
 head_top = z_back + R.almohada(d_head, HEAD_H, HEAD_R, HEAD_DOMO)
@@ -211,26 +242,36 @@ cuerpo("ajolote_boca", "3_ajolote", "negro", rej, mouth & cabeza & ~eyes, head_t
 lob = np.zeros_like(axo); lob_top = np.zeros(axo.shape)
 for L in lobes:
     L = L & backer & ~cara
+    L = rej.offset(rej.offset(L, -0.45), 0.45) & L
     t = z_back + R.almohada(rej.dist(L), LOBE_H, LOBE_R, LOBE_DOMO)
     lob_top = np.where(L, t, lob_top); lob |= L
 cuerpo("ajolote_branquias_rosa", "3_ajolote", "rosa_bajito", rej, lob, lob_top, z_back)
 fr = fringes & backer & ~lob & ~cara
+fr = rej.offset(rej.offset(fr, -0.45), 0.45) & fr      # sin detalles de menos de ~0.9 mm (nada frágil)
 cuerpo("ajolote_branquias_morado", "3_ajolote", "morado", rej, fr, z_back + R.almohada(rej.dist(fr), FRINGE_H, FRINGE_R), z_back)
 
 # --- manitas (van montadas sobre el bolsillo, z0 = POCKET_T)
 for i, (pb, pp) in enumerate(zip(sorted(paws_back, key=lambda m: rej.X[m].mean()), sorted(paws_pink, key=lambda m: rej.X[m].mean()))):
     lado = "izq" if i == 0 else "der"
     z0 = POCKET_T + HEM_H
-    cuerpo(f"manita_{lado}_contorno", f"3_manita_{lado}", "negro", rej, pb, z0 + R.almohada(rej.dist(pb), PAW_BACK_T, 0.4), z0)
     pp = pp & pb
+    p_m = elegir_pernos(rej, pp & pocket, 1, 2.5, 99)
+    PERNOS_BOLSILLO += [(x, y, 2.5, 1.2) for x, y in p_m]
+    h_m = hoyos(rej, p_m, 2.5 + AJUSTE)
+    cuerpo(f"manita_{lado}_contorno", f"3_manita_{lado}", "negro", rej, pb & ~h_m, z0 + R.almohada(rej.dist(pb), PAW_BACK_T, 0.4), z0)
     cuerpo(f"manita_{lado}_rosa", f"3_manita_{lado}", "rosa_bajito", rej, pp,
-           z0 + PAW_BACK_T + R.almohada(rej.dist(pp), PAW_H, PAW_R, 0.4), z0 + PAW_BACK_T)
+           z0 + PAW_BACK_T + R.almohada(rej.dist(pp), PAW_H, PAW_R, 0.4), np.where(h_m, z0 + 1.4, z0 + PAW_BACK_T))
 
 # --- burbujas
 for i, c in enumerate(sorted(R.componentes(R.mascara("burbujas"), 200), key=lambda c: c["cy"])):
     b = rej.de_ref(c["mask"])
     rad = math.sqrt(b.sum()) * rej.res / math.sqrt(math.pi)
-    cuerpo(f"burbuja_{i+1}", "3_burbujas", "blanco", rej, b, R.almohada(rej.dist(b), BUBBLE_H, min(BUBBLE_R, 0.45 * rad), 0.6), 0.0)
+    pd = 3.0 if rad >= 5 else 2.0
+    p_b = elegir_pernos(rej, b, 1, pd / 2 + 1.2, 99)
+    PERNOS_PANEL += [(x, y, pd, 1.6) for x, y in p_b]
+    burbujas_union = b if i == 0 else (burbujas_union | b)
+    cuerpo(f"burbuja_{i+1}", "3_burbujas", "blanco", rej, b, R.almohada(rej.dist(b), BUBBLE_H, min(BUBBLE_R, 0.45 * rad), 0.6),
+           np.where(hoyos(rej, p_b, pd + AJUSTE), 1.8, 0.0))
 
 # --- alga (3 tallos, el de la derecha más al frente)
 tallos = sorted(R.componentes(R.mascara("alga"), 500), key=lambda c: c["cx"])
@@ -240,7 +281,10 @@ for c, h in zip(tallos, ALGA_H):
     tt = R.almohada(rej.dist(t), h, ALGA_R, 0.8)
     alg_top = np.where(t, np.maximum(alg_top, tt), alg_top); alg |= t
 alg &= rej.Y > R.ALTO_BASE + 0.4
-cuerpo("alga", "3_alga", "morado", rej, alg, alg_top, 0.0)
+panel_ref = rej.de_ref(R.mascara("panel"))
+p_al = elegir_pernos(rej, alg & rej.offset(panel_ref, -3.5), 3, 2.8, 20.0)   # solo donde el alga se apoya en el panel
+PERNOS_PANEL += [(x, y, 3.0, 1.6) for x, y in p_al]
+cuerpo("alga", "3_alga", "morado", rej, alg, alg_top, np.where(hoyos(rej, p_al, 3.0 + AJUSTE), 1.8, 0.0))
 
 # ================================================================ FASE 3: panel y bolsillo
 m_cost = R.mascara("costuras")
@@ -255,6 +299,21 @@ def incrustar(base_top, zona, alto, r, inlay=INLAY):
     return top, bot
 
 
+# pernos del bolsillo (se eligen antes de construir el panel)
+p_pk = elegir_pernos(rej, pocket, 4, 7.0, 40.0)
+PERNOS_PANEL += [(x, y, 4.0, 2.0) for x, y in p_pk]
+
+# huella (vista frontal) de cada pieza que se apoya en la cara del panel
+HUELLAS = {"ajolote": backer, "bolsillo": pocket, "burbujas": burbujas_union, "alga": alg}
+
+
+def a_rejilla(m, src, dst):
+    """Lleva una máscara de una rejilla a otra (vecino más cercano)."""
+    rr = np.clip(((src.y1 - dst.Y) / src.res).astype(int), 0, m.shape[0] - 1)
+    cc = np.clip(((dst.X - src.x0) / src.res).astype(int), 0, m.shape[1] - 1)
+    return m[rr, cc]
+
+
 # --- PANEL (rejilla gruesa: pieza grande)
 rg = R.Rejilla(-102, 102, 8, 202, res=0.2)
 rej_act = rg
@@ -265,7 +324,8 @@ panel |= (rg.X >= xs_pan.min()) & (rg.X <= xs_pan.max()) & (rg.Y >= R.ALTO_BASE 
 panel = R.sin_pellizcos(panel)
 pan_top = R.almohada(rg.dist(panel), PANEL_T, 1.2)
 # costuras del panel (las que están fuera del bolsillo), cada puntada en su lugar
-st_pan = rg.de_ref(m_cost & ~cv2.dilate(m_pk.astype(np.uint8), np.ones((9, 9), np.uint8)).astype(bool), 0.8) & panel
+huella_rg = a_rejilla(rej.offset(np.any(list(HUELLAS.values()), axis=0), 0.6), rej, rg)
+st_pan = rg.de_ref(m_cost & ~cv2.dilate(m_pk.astype(np.uint8), np.ones((9, 9), np.uint8)).astype(bool), 0.8) & panel & ~huella_rg
 st_top, st_bot = incrustar(pan_top, st_pan, STITCH_H, 0.4)
 # espalda: texto incrustado en espejo (se lee por detrás; esa cara se imprime contra la cama)
 yb = 0.5 * (R.ALTO_BASE + 150)
@@ -274,7 +334,10 @@ espalda_txt = rg.texto([("Hecho por", 7, 0, yb + 26), ("Ajolote de Bolsillo", 12
                         ("WhatsApp 311 167 5907", 6.5, 0, yb - 21)], str(R.HERE.parent / "vendor" / "fonts" / "Fredoka-700.ttf"),
                        espejo=True) & rg.offset(panel, -3)
 pan_bot = np.where(espalda_txt, 0.6, 0.0)
-cuerpo("panel", "1_panel", "azul_cielo", rg, panel, np.where(st_pan, st_bot, pan_top), pan_bot, back_y=PANEL_T)
+pan_body_top = np.where(st_pan, st_bot, pan_top)
+for x, y, dd, hh in PERNOS_PANEL:     # pernos: salen de la cara del panel
+    pan_body_top = np.where((rg.X - x) ** 2 + (rg.Y - y) ** 2 <= (dd / 2) ** 2, PANEL_T + hh, pan_body_top)
+cuerpo("panel", "1_panel", "azul_cielo", rg, panel, pan_body_top, pan_bot, back_y=PANEL_T, suave=0.8)
 cuerpo("panel_costuras", "1_panel", "amarillo_pastel", rg, st_pan, st_top, st_bot, back_y=PANEL_T)
 cuerpo("panel_espalda_texto", "1_panel", "blanco", rg, espalda_txt, 0.6 + 0 * pan_top, 0.0, back_y=PANEL_T)
 
@@ -337,7 +400,9 @@ txt = rej.de_ref(R.mascara("texto_bolsillo"), 0.7) & pk & ~hueco
 stp_top, stp_bot = incrustar(pk_top, st_pk, STITCH_H, 0.4)
 tx_top, tx_bot = incrustar(pk_top, txt, TEXT_H, 0.5)
 pk_body_top = np.where(st_pk, stp_bot, np.where(txt, tx_bot, pk_top))
-cuerpo("bolsillo", "2_bolsillo", "azul_cielo", rej, pk, pk_body_top, 0.0)
+for x, y, dd, hh in PERNOS_BOLSILLO:   # pernos para las manitas, sobre la franja
+    pk_body_top = np.where((rej.X - x) ** 2 + (rej.Y - y) ** 2 <= (dd / 2) ** 2, pk_body_top + hh, pk_body_top)
+cuerpo("bolsillo", "2_bolsillo", "azul_cielo", rej, pk, pk_body_top, np.where(hoyos(rej, p_pk, 4.0 + AJUSTE), 2.2, 0.0), suave=0.8)
 cuerpo("bolsillo_costuras", "2_bolsillo", "amarillo_pastel", rej, st_pk, stp_top, stp_bot)
 cuerpo("bolsillo_texto", "2_bolsillo", "blanco", rej, txt, tx_top, tx_bot)
 if QR_MODO == "impreso":
@@ -412,6 +477,22 @@ for (icono, col, col_ic), x in zip(BOTONES, BTN_X):
     icm &= rbt.offset(disco, -2.0)
     cuerpo(f"boton_{icono}", f"5_boton_{icono}", col, rbt, disco, np.where(icm, ztop - INLAY, ztop), z0, parado=False)
     cuerpo(f"boton_{icono}_icono", f"5_boton_{icono}", col_ic, rbt, icm, ztop, ztop - INLAY, parado=False)
+
+# ---------------------------------------------------------------- revisión de ensamble
+choques = {}
+nombres_h = list(HUELLAS)
+for i in range(len(nombres_h)):
+    for j in range(i + 1, len(nombres_h)):
+        a_, b_ = HUELLAS[nombres_h[i]], HUELLAS[nombres_h[j]]
+        area = float((a_ & b_).sum()) * rej.res ** 2
+        choques[f"{nombres_h[i]} × {nombres_h[j]}"] = round(area, 2)
+fuera = {k: round(float((v & ~a_rejilla(panel, rg, rej)).sum()) * rej.res ** 2, 1) for k, v in HUELLAS.items()}
+ENSAMBLE = dict(choques_mm2=choques, fuera_del_panel_mm2=fuera, ajuste_pernos_mm=AJUSTE,
+                pernos_panel=[dict(x=round(x, 1), y=round(y, 1), d=d, alto=h) for x, y, d, h in PERNOS_PANEL],
+                pernos_bolsillo=[dict(x=round(x, 1), y=round(y, 1), d=d, alto=h) for x, y, d, h in PERNOS_BOLSILLO])
+json.dump(ENSAMBLE, open(OUT / "ensamble.json", "w"), indent=1, ensure_ascii=False)
+print("CHOQUES", json.dumps(choques, ensure_ascii=False), "| FUERA DEL PANEL", json.dumps(fuera, ensure_ascii=False),
+      "| pernos:", len(PERNOS_PANEL), "+", len(PERNOS_BOLSILLO))
 
 # ---------------------------------------------------------------- guardar, exportar
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT / "totem.blend"))

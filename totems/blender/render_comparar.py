@@ -87,6 +87,7 @@ def usar_cycles():
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"; scene.cycles.samples = 48; scene.cycles.use_denoising = True
     scene.cycles.max_bounces = 4
+    scene.view_settings.exposure = 0.7
     w = scene.world; w.use_nodes = True
     bg = w.node_tree.nodes.get("Background"); bg.inputs[0].default_value = (0.95, 0.93, 0.90, 1); bg.inputs[1].default_value = 0.30
     for nombre, loc, en in (("llave", (-320, -260, 420), 260000), ("relleno", (380, -380, 120), 50000), ("contra", (60, 320, 380), 60000)):
@@ -102,16 +103,30 @@ def usar_cycles():
 
 def usar_workbench():
     scene.render.engine = "BLENDER_WORKBENCH"
+    scene.view_settings.exposure = 0.0
 
 
 # vistas: frente y 3/4 en Cycles (color real); el resto en Workbench (rápido)
 usar_cycles()
 orto("frente.png", (xc_mm, -800, zc_mm), (math.radians(90), 0, 0))
 persp("tres_cuartos.png", (-330, -520, 260), (0, 0, 100))
+# vista explotada: cada capa se separa hacia el frente para enseñar cómo se arma
+desp = {"2_": (0, -45, 0), "3_manita": (0, -110, 8), "3_": (0, -80, 0), "5_": (0, 0, 30)}
+orig = {}
+for col in bpy.data.collections:
+    for pref, d in desp.items():
+        if col.name.startswith(pref):
+            for ob in col.objects:
+                orig[ob.name] = tuple(ob.location); ob.location = (ob.location[0] + d[0], ob.location[1] + d[1], ob.location[2] + d[2])
+            break
+persp("explosion.png", (520, -620, 330), (0, -60, 100), lens=58, res=(1600, 1400))
+for n, loc in orig.items():
+    bpy.data.objects[n].location = loc
 usar_workbench()
+orto("frente_wb.png", (xc_mm, -800, zc_mm), (math.radians(90), 0, 0))
 orto("espalda.png", (-xc_mm, 800, zc_mm), (math.radians(90), 0, math.radians(180)))
-orto("lado_izq.png", (-800, 20, zc_mm), (math.radians(90), 0, math.radians(-90)), res=(int(H * 0.6), H))
-orto("lado_der.png", (800, 20, zc_mm), (math.radians(90), 0, math.radians(90)), res=(int(H * 0.6), H))
+orto("lado_izq.png", (-800, -24, zc_mm), (math.radians(90), 0, math.radians(-90)), res=(int(H * 0.6), H))
+orto("lado_der.png", (800, -24, zc_mm), (math.radians(90), 0, math.radians(90)), res=(int(H * 0.6), H))
 
 if solo_render:
     sys.exit(0)

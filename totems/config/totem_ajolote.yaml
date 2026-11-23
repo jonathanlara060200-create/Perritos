@@ -3,6 +3,7 @@
 
 nombre_pieza: "bolsillo_ajolote_20cm"
 tolerancia: 0.2            # holgura por lado en ranuras, huecos y pernos
+ajuste_pernos: 0.1         # el hueco es 0.1 mm más grande que el perno: ajuste a presión (subir a 0.15–0.2 si entra muy duro)
 
 texto:
   linea1: "Ajolote"

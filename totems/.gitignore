@@ -8,3 +8,4 @@ blender/fase*/*.blend
 blender/totem/*.blend
 blender/totem/stl/
 *.blend1
+blender/impresion/

@@ -45,7 +45,7 @@
   "objeto": "manita_izq_contorno",
   "pieza": "3_manita_izq",
   "color": "negro",
-  "caras": 51956
+  "caras": 51022
  },
  {
   "objeto": "manita_izq_rosa",
@@ -57,7 +57,7 @@
   "objeto": "manita_der_contorno",
   "pieza": "3_manita_der",
   "color": "negro",
-  "caras": 51374
+  "caras": 50436
  },
  {
   "objeto": "manita_der_rosa",
@@ -123,7 +123,7 @@
   "objeto": "panel_costuras",
   "pieza": "1_panel",
   "color": "amarillo_pastel",
-  "caras": 15798
+  "caras": 15696
  },
  {
   "objeto": "panel_espalda_texto",
