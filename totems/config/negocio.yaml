@@ -33,6 +33,11 @@ reglas_diseno:
   qr_zona_silenciosa_modulos: 4
   nfc_tag_diametro_mm: 25
 
+inventario:   # lo que hay en el taller; revisarlo antes de diseñar
+  tags_nfc:
+    diametro_mm: 25          # NTAG213/215 redondos de 25 mm (no hay de 20 mm)
+    nota: "Toda pieza con NFC se diseña para tag de 25 mm: cavidad Ø25.6 × 0.8 mm, pared ≥ 1.2 mm. Si no cabe, se agranda la pieza."
+
 costos:   # llenar en la Etapa 5
   filamento_mxn_por_kg: null
   luz_mxn_por_hora: null

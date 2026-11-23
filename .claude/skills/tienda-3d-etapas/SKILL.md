@@ -34,6 +34,9 @@ etapa no aprueba la siguiente.
   dilo en una línea y sigue.
 
 ## Restricciones que siempre se revisan al proponer
+- Inventario del taller (`inventario` en `negocio.yaml`): los tags NFC son de **25 mm**. Toda pieza con NFC
+  (tótems, placas de mascota, llaveros) se diseña para ese tamaño; si no cabe, se agranda la pieza
+  (`totems/placas_mascota/agregar_nfc.py --tag 25 --escala ...`).
 - Solo los filamentos de `negocio.yaml`. Si el logo usa un color que no hay, propón el sustituto y pregunta.
 - Máximo 4 colores por placa; si hacen falta más, divide en piezas que se ensamblen.
 - Todo cabe en el área útil (240 × 240 mm) y se imprime acostado, con la cara al frente hacia arriba.
