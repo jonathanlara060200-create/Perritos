@@ -16,7 +16,7 @@ def leer_qrs(path):
     h, w = img.shape[:2]
     # imagen completa + rejilla de recortes para QR pequeños
     recortes = [img]
-    for n in (2, 3):
+    for n in (2, 3, 4, 5):
         for i in range(n):
             for j in range(n):
                 y0, y1 = max(0, int(h * i / n - h * .1)), min(h, int(h * (i + 1) / n + h * .1))

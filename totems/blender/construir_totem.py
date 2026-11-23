@@ -92,7 +92,7 @@ MAX_CARAS = 160000
 T0 = time.time()
 
 
-def cuerpo(nombre, pieza, color, rej, dentro, top, bot, back_y=0.0, suave=1.6):
+def cuerpo(nombre, pieza, color, rej, dentro, top, bot, back_y=0.0, suave=1.6, parado=True):
     """Crea un objeto Blender (sólido cerrado) y lo coloca parado en el ensamble."""
     if not dentro.any():
         return None
@@ -132,8 +132,9 @@ def cuerpo(nombre, pieza, color, rej, dentro, top, bot, back_y=0.0, suave=1.6):
     ob = bpy.data.objects.new(nombre, me)
     ob.data.materials.append(material(color))
     coleccion(pieza).objects.link(ob)
-    ob.rotation_euler = (math.radians(90), 0, 0)   # plano → parado (Z plano = hacia el frente = −Y)
-    ob.location = (0, back_y, 0)
+    if parado:
+        ob.rotation_euler = (math.radians(90), 0, 0)   # plano → parado (Z plano = hacia el frente = −Y)
+        ob.location = (0, back_y, 0)
     REGISTRO.append(dict(objeto=nombre, pieza=pieza, color=color, caras=len(me.polygons)))
     print(f"{nombre:28s} {len(me.polygons):8d} caras  {time.time()-T0:6.1f}s", flush=True)
     return ob
@@ -238,6 +239,7 @@ for c, h in zip(tallos, ALGA_H):
     t = rej.de_ref(c["mask"])
     tt = R.almohada(rej.dist(t), h, ALGA_R, 0.8)
     alg_top = np.where(t, np.maximum(alg_top, tt), alg_top); alg |= t
+alg &= rej.Y > R.ALTO_BASE + 0.4
 cuerpo("alga", "3_alga", "morado", rej, alg, alg_top, 0.0)
 
 # ================================================================ FASE 3: panel y bolsillo
@@ -343,6 +345,72 @@ if QR_MODO == "impreso":
     cuerpo("bolsillo_qr_modulos", "2_bolsillo", "negro", rej, negro_qr & hueco, tile_top + 0 * tile_body_top, tile_top - MOD_INLAY, suave=0)
 json.dump(dict(escala=R.ESCALA, alto_base=R.ALTO_BASE, qr_modo=QR_MODO, qr_impresos=QR_INFO, huecos_uv_dtf=HUECOS_INFO), open(OUT / "medidas_modelo.json", "w"),
           indent=1, ensure_ascii=False)
+
+# ================================================================ FASE 4: base NFC
+# Coordenadas de la base: X derecha, Y profundidad (−Y = frente), Z arriba. La base se imprime tal cual.
+FONT_B = str(HERE.parent / "vendor" / "fonts" / "Fredoka-700.ttf")
+BASE_W = 199.0            # ancho (referencia × escala)
+BASE_Y0, BASE_Y1 = -62.0, 14.0    # frente / atrás
+FRONT_Z = 6.0             # altura del canto frontal; sube en 45° hasta ALTO_BASE
+SLOPE_D = R.ALTO_BASE - FRONT_Z
+BTN_D, BTN_TOL = 32.0, CFG["tolerancia"]
+BTN_HUECO = CFG["hueco_boton_profundo"]      # profundidad del alojamiento del botón
+BTN_ALTO = BTN_HUECO + 3.5                   # el botón sobresale 3.5 mm
+TAG_D, TAG_PROF = CFG["tag_nfc_diametro"] + 0.6, 1.0
+BTN_Y = -30.0
+med1 = json.load(open(R.F1 / "medidas.json"))
+BTN_X = [round(R.ESCALA * (med1["botones"][k]["cx_px"] - R.CX) / R.PX, 1) for k in ("instagram", "whatsapp", "tarjeta")]
+BOTONES = [("instagram", "morado", "blanco"), ("whatsapp", "rosa_bajito", "blanco"), ("credit-card", "blanco", "azul_cielo")]
+
+rb = R.Rejilla(-BASE_W / 2 - 1, BASE_W / 2 + 1, BASE_Y0 - 1, BASE_Y1 + 1, res=0.15)
+base = rb.rect_redondeado(-BASE_W / 2, BASE_W / 2, BASE_Y0, BASE_Y1, 8.0)
+perfil = np.clip(FRONT_Z + (rb.Y - BASE_Y0), FRONT_Z, R.ALTO_BASE)          # frente inclinado a 45°
+z_base = np.minimum(perfil, R.almohada(rb.dist(base), R.ALTO_BASE, 2.0))
+# ranura del panel (ancho real del panel + holgura)
+pan_ancho = float(xs_pan.max() - xs_pan.min())
+ranura = (np.abs(rb.X - (xs_pan.max() + xs_pan.min()) / 2) <= pan_ancho / 2 + BTN_TOL) & (rb.Y >= -BTN_TOL) & (rb.Y <= PANEL_T + BTN_TOL)
+z_base = np.where(ranura, R.ALTO_BASE - SLOT_DEPTH, z_base)
+# alojamientos de botón + cavidad del tag NFC + orificio para expulsar
+dentro_base = base.copy()
+for x in BTN_X:
+    r2 = (rb.X - x) ** 2 + (rb.Y - BTN_Y) ** 2
+    z_base = np.where(r2 <= (BTN_D / 2 + BTN_TOL) ** 2, R.ALTO_BASE - BTN_HUECO, z_base)
+    z_base = np.where(r2 <= (TAG_D / 2) ** 2, R.ALTO_BASE - BTN_HUECO - TAG_PROF, z_base)
+    dentro_base &= r2 > 3.0 ** 2
+# texto en el frente inclinado: se dibuja "desenrollado" sobre la rampa y se proyecta a la vista superior
+L = SLOPE_D * math.sqrt(2)
+rs = R.Rejilla(-BASE_W / 2, BASE_W / 2, 0, L, res=0.15)
+txt_rampa = rs.texto([(CFG["base_texto"], 9.0, 0, L / 2)], FONT_B)
+for lado in (-1, 1):            # rayitas decorativas
+    for ang in (-25, 0, 25):
+        cx0 = lado * 72; cy0 = L / 2
+        dx, dy = math.cos(math.radians(ang)) * lado, math.sin(math.radians(ang))
+        for t in np.linspace(0, 6, 25):
+            txt_rampa |= ((rs.X - (cx0 + dx * t)) ** 2 + (rs.Y - (cy0 + dy * t)) ** 2) <= 0.75 ** 2
+u = (rb.Y - BASE_Y0) * math.sqrt(2)                                           # distancia a lo largo de la rampa
+iu = np.clip(((L - u) / rs.res).astype(int), 0, rs.R - 1)
+ix = np.clip(((rb.X - rs.x0) / rs.res).astype(int), 0, rs.C - 1)
+texto_base = txt_rampa[iu, ix] & (u > 0.8) & (u < L - 0.8) & base
+cuerpo("base", "4_base", "azul_cielo", rb, dentro_base, np.where(texto_base, z_base - INLAY, z_base), 0.0, parado=False)
+cuerpo("base_texto", "4_base", "blanco", rb, texto_base, z_base + 0.6, z_base - INLAY, parado=False)
+
+# botones: tapa del tag, entra a presión en su alojamiento
+for (icono, col, col_ic), x in zip(BOTONES, BTN_X):
+    rbt = R.Rejilla(x - 17, x + 17, BTN_Y - 17, BTN_Y + 17, res=0.08)
+    disco = ((rbt.X - x) ** 2 + (rbt.Y - BTN_Y) ** 2) <= (BTN_D / 2) ** 2
+    z0 = R.ALTO_BASE - BTN_HUECO
+    ztop = z0 + R.almohada(rbt.dist(disco), BTN_ALTO, 1.4, 0.4)
+    import cairosvg  # noqa: E402
+    import io  # noqa: E402
+    lado_px = int(round(18.0 / rbt.res))
+    png = cairosvg.svg2png(url=str(HERE.parent / "vendor" / "icons" / f"{icono}.svg"), output_width=lado_px, output_height=lado_px)
+    ic = np.asarray(Image.open(io.BytesIO(png)).convert("RGBA"))[..., 3] > 127
+    icm = np.zeros_like(disco)
+    r0 = int(round((rbt.y1 - BTN_Y) / rbt.res)) - lado_px // 2; c0 = int(round((x - rbt.x0) / rbt.res)) - lado_px // 2
+    icm[r0:r0 + lado_px, c0:c0 + lado_px] = ic[: icm.shape[0] - r0, : icm.shape[1] - c0]
+    icm &= rbt.offset(disco, -2.0)
+    cuerpo(f"boton_{icono}", f"5_boton_{icono}", col, rbt, disco, np.where(icm, ztop - INLAY, ztop), z0, parado=False)
+    cuerpo(f"boton_{icono}_icono", f"5_boton_{icono}", col_ic, rbt, icm, ztop, ztop - INLAY, parado=False)
 
 # ---------------------------------------------------------------- guardar, exportar
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT / "totem.blend"))

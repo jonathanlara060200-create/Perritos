@@ -1,6 +1,31 @@
 {
  "escala": 1.094890510948905,
  "alto_base": 20.0,
+ "qr_modo": "impreso",
+ "qr_impresos": [
+  {
+   "etiqueta": "TIENDA",
+   "url": "https://ajolotedebolsillo.mitiendanube.com",
+   "version": 3,
+   "modulos": 29,
+   "modulo_mm": 1.142,
+   "placa_mm": [
+    37.7,
+    42.1
+   ]
+  },
+  {
+   "etiqueta": "WHATSAPP",
+   "url": "https://wa.me/523111675907",
+   "version": 2,
+   "modulos": 25,
+   "modulo_mm": 1.297,
+   "placa_mm": [
+    37.6,
+    42.3
+   ]
+  }
+ ],
  "huecos_uv_dtf": [
   {
    "etiqueta": "TIENDA",

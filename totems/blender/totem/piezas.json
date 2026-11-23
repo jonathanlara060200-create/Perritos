@@ -148,5 +148,17 @@
   "pieza": "2_bolsillo",
   "color": "blanco",
   "caras": 160000
+ },
+ {
+  "objeto": "bolsillo_qr_placas",
+  "pieza": "2_bolsillo",
+  "color": "blanco",
+  "caras": 160000
+ },
+ {
+  "objeto": "bolsillo_qr_modulos",
+  "pieza": "2_bolsillo",
+  "color": "negro",
+  "caras": 160000
  }
 ]
