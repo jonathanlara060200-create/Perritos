@@ -21,6 +21,22 @@ MED = json.load(open(F1 / "medidas.json"))
 PX = MED["px_por_mm"]; CX = MED["centro_x_px"]; Y1 = MED["piso_y_px"]
 RES = 0.1  # mm por celda de la rejilla de modelado
 
+# --- de la referencia (dibujada con la base vista desde arriba) al objeto real, de frente
+# El panel arranca donde termina la base real (ALTO_BASE). Para conservar 200 mm de alto y las
+# proporciones de la referencia, todo lo de arriba de la base se escala parejo por ESCALA.
+Y_BASE_REF = 35.6      # mm (en la referencia) donde el panel toca la base
+ALTO_BASE = 20.0       # mm, altura real de la base
+ALTO_TOTAL = 200.0
+ESCALA = (ALTO_TOTAL - ALTO_BASE) / (ALTO_TOTAL - Y_BASE_REF)
+
+
+def ref_a_modelo(x, y):
+    return ESCALA * x, ALTO_BASE + ESCALA * (y - Y_BASE_REF)
+
+
+def modelo_a_ref(x, y):
+    return x / ESCALA, (y - ALTO_BASE) / ESCALA + Y_BASE_REF
+
 
 def mascara(nombre: str) -> np.ndarray:
     return np.asarray(Image.open(F1 / f"mascara_{nombre}.png")) > 0
@@ -46,19 +62,42 @@ class Rejilla:
         cols = x0 + (np.arange(self.C) + 0.5) * res
         rows = y1 - (np.arange(self.R) + 0.5) * res
         self.X, self.Y = np.meshgrid(cols, rows)
-        self.mapx = (self.X * PX + CX).astype(np.float32)
-        self.mapy = (Y1 - self.Y * PX).astype(np.float32)
+        xr, yr = modelo_a_ref(self.X, self.Y)
+        self.mapx = (xr * PX + CX).astype(np.float32)
+        self.mapy = (Y1 - yr * PX).astype(np.float32)
 
     def de_ref(self, m_src: np.ndarray, suave_px: float = 1.1) -> np.ndarray:
         f = cv2.GaussianBlur(m_src.astype(np.float32), (0, 0), suave_px)
         v = cv2.remap(f, self.mapx, self.mapy, cv2.INTER_LINEAR, borderValue=0)
         return v > 0.5
 
-    def poligono(self, pts_mm) -> np.ndarray:
+    def poligono(self, pts_mm, en_ref=True) -> np.ndarray:
+        """Rellena un polígono; por defecto sus puntos vienen en mm de la referencia."""
         m = np.zeros((self.R, self.C), np.uint8)
-        p = np.array([[(x - self.x0) / self.res, (self.y1 - y) / self.res] for x, y in pts_mm], np.float32)
+        pts = [ref_a_modelo(x, y) for x, y in pts_mm] if en_ref else pts_mm
+        p = np.array([[(x - self.x0) / self.res, (self.y1 - y) / self.res] for x, y in pts], np.float32)
         cv2.fillPoly(m, [np.round(p * 8).astype(np.int32)], 1, shift=3)
         return m > 0
+
+    def rect_redondeado(self, x0, x1, y0, y1, r) -> np.ndarray:
+        """Rectángulo con esquinas redondeadas (mm del modelo)."""
+        inner = (self.X >= x0 + r) & (self.X <= x1 - r) & (self.Y >= y0 + r) & (self.Y <= y1 - r)
+        return self.offset(inner, r) & (self.X >= x0) & (self.X <= x1) & (self.Y >= y0) & (self.Y <= y1)
+
+    def texto(self, lineas, fuente, espejo=False) -> np.ndarray:
+        """Rasteriza líneas de texto [(texto, alto_mm, x_centro_mm, y_centro_mm)] con una fuente TTF."""
+        from PIL import ImageDraw, ImageFont
+        img = Image.new("L", (self.C, self.R), 0); d = ImageDraw.Draw(img)
+        for t, alto, xc, yc in lineas:
+            f = ImageFont.truetype(fuente, int(round(alto / self.res)))
+            px, py = (xc - self.x0) / self.res, (self.y1 - yc) / self.res
+            d.text((px, py), t, font=f, fill=255, anchor="mm")
+        m = np.asarray(img) > 127
+        if espejo:   # espejo respecto a x = 0
+            cols = np.round((-(self.X[0]) - self.x0) / self.res - 0.5).astype(int)
+            ok = (cols >= 0) & (cols < self.C)
+            out = np.zeros_like(m); out[:, ok] = m[:, cols[ok]]; m = out
+        return m
 
     def dist(self, m: np.ndarray) -> np.ndarray:
         """Distancia (mm) de cada celda interior al borde."""

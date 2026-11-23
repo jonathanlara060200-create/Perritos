@@ -1,0 +1,26 @@
+[
+ {
+  "placa": "placa_tienda",
+  "ancho_mm": 37.1,
+  "alto_mm": 41.5,
+  "radio_mm": 3.2,
+  "modulo_qr_mm": 0.99,
+  "hueco_mm": [
+   37.7,
+   42.1
+  ],
+  "profundidad_hueco_mm": 0.4
+ },
+ {
+  "placa": "placa_whatsapp",
+  "ancho_mm": 37.0,
+  "alto_mm": 41.7,
+  "radio_mm": 3.2,
+  "modulo_qr_mm": 1.14,
+  "hueco_mm": [
+   37.6,
+   42.3
+  ],
+  "profundidad_hueco_mm": 0.4
+ }
+]

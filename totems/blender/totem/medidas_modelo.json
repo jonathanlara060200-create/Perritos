@@ -1,0 +1,28 @@
+{
+ "escala": 1.094890510948905,
+ "alto_base": 20.0,
+ "huecos_uv_dtf": [
+  {
+   "etiqueta": "TIENDA",
+   "x0": -37.45,
+   "x1": 0.25,
+   "y0": 36.55,
+   "y1": 78.65,
+   "ancho": 37.7,
+   "alto": 42.1,
+   "radio": 3.5,
+   "profundidad": 0.4
+  },
+  {
+   "etiqueta": "WHATSAPP",
+   "x0": 7.35,
+   "x1": 44.95,
+   "y0": 36.55,
+   "y1": 78.85,
+   "ancho": 37.6,
+   "alto": 42.3,
+   "radio": 3.5,
+   "profundidad": 0.4
+  }
+ ]
+}

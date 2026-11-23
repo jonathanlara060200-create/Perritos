@@ -1,7 +1,8 @@
-"""Fase 2: ajolote, manitas, burbujas y alga como sólidos 3D en Blender, a partir del calco de la referencia.
+"""Construye el tótem "Ajolote de Bolsillo" en Blender a partir del calco de la referencia.
 
-Uso:  python3 totems/blender/fase2_personaje.py
-Salidas en totems/blender/fase2/: totem_fase2.blend, STL por pieza y color, renders y comparación con la referencia.
+Fase 2: ajolote, manitas, burbujas y alga.  Fase 3: panel trasero y bolsillo con sus relieves.
+Uso:  python3 totems/blender/construir_totem.py
+Salidas en totems/blender/totem/: totem.blend, STL por pieza y color (ensamblado), piezas.json.
 """
 from __future__ import annotations
 
@@ -21,15 +22,22 @@ HERE = pathlib.Path(__file__).parent
 sys.path.insert(0, str(HERE))
 import relieve as R  # noqa: E402
 
-OUT = HERE / "fase2"; OUT.mkdir(exist_ok=True)
+OUT = HERE / "totem"; OUT.mkdir(exist_ok=True)
 (OUT / "stl").mkdir(exist_ok=True)
 
 FIL = dict(azul_cielo="#9FCBEA", rosa_bajito="#F6B7C9", morado="#9B7BC4", amarillo_pastel="#F7E39A",
            negro="#222222", blanco="#FFFFFF", beige="#E9D8BC", gris="#9A9A9A")
 
 # ---------------------------------------------------------------- espesores de diseño (mm, hacia el frente)
-PANEL_T = 6.0          # panel trasero (provisional en esta fase)
-POCKET_T = 4.0         # bolsillo (provisional en esta fase)
+PANEL_T = 6.0          # panel trasero
+POCKET_T = 4.0         # bolsillo (cuerpo)
+HEM_H = 0.8            # franja superior del bolsillo, más alta
+RIM_H = 0.6            # borde levantado del bolsillo
+INLAY = 0.4            # colores incrustados: entran 0.4 mm en la pieza
+STITCH_H = 0.6         # costuras sobresalen
+TEXT_H = 1.2           # texto del bolsillo sobresale
+QR_RECESS = 0.4        # hueco para la calcomanía UV DTF
+SLOT_DEPTH = 10.0      # lo que el panel entra en la base
 BACKER_T = 2.4         # contorno negro del ajolote (base de la pieza)
 HEAD_H, HEAD_R, HEAD_DOMO = 3.0, 2.0, 1.2
 LOBE_H, LOBE_R, LOBE_DOMO = 2.4, 1.4, 0.6
@@ -141,7 +149,7 @@ m_man = R.mascara("manitas")
 POCKET_PX = json.load(open(R.F1 / "contornos_mm.json"))["bolsillo"][0]["puntos_mm"]
 
 # rejilla que cubre todo lo de arriba de la base
-rej = R.Rejilla(-95, 95, 30, 202)
+rej = R.Rejilla(-102, 102, 8, 202)
 pocket = rej.poligono(POCKET_PX)
 pocket_gap = rej.offset(pocket, GAP)
 
@@ -165,9 +173,10 @@ head_full_src = rellenar(cv2.morphologyEx(head_c["mask"].astype(np.uint8), cv2.M
 negros_cara = [c for c in R.componentes(m_neg & head_full_src, 200) if c["area"] < 20000]
 eyes_c = [c for c in negros_cara if c["area"] > 3000]
 mouth_c = [c for c in negros_cara if c["area"] <= 3000]
-eyes = rej.de_ref(sum(c["mask"] for c in eyes_c) > 0, 0.8)
+eyes_src = rellenar(sum(c["mask"] for c in eyes_c) > 0)
+eyes = rej.de_ref(eyes_src, 0.8)
 mouth = rej.de_ref(sum(c["mask"] for c in mouth_c) > 0, 0.6)
-shine = rej.de_ref(m_bri & cv2.dilate(sum(c["mask"] for c in eyes_c).astype(np.uint8), np.ones((5, 5), np.uint8)).astype(bool), 0.6)
+shine = rej.de_ref(m_bri & eyes_src, 0.6)
 shine &= eyes
 head_full = rej.de_ref(head_full_src)
 cara = head_full  # cabeza completa (incluye ojos y boca) para el domo
@@ -186,7 +195,7 @@ cuerpo("ajolote_contorno", "3_ajolote", "negro", rej, backer,
 
 d_head = rej.dist(cara)
 head_top = z_back + R.almohada(d_head, HEAD_H, HEAD_R, HEAD_DOMO)
-head_top = np.where(bajo_manitas, np.minimum(head_top, POCKET_T - 0.2), head_top)
+head_top = np.where(bajo_manitas, np.minimum(head_top, POCKET_T + HEM_H - 0.2), head_top)
 cabeza = cara & backer & ~pocket_gap
 eye_bot = head_top - EYE_INLAY
 top_cabeza = np.where(eyes | mouth, eye_bot, head_top)
@@ -210,7 +219,7 @@ cuerpo("ajolote_branquias_morado", "3_ajolote", "morado", rej, fr, z_back + R.al
 # --- manitas (van montadas sobre el bolsillo, z0 = POCKET_T)
 for i, (pb, pp) in enumerate(zip(sorted(paws_back, key=lambda m: rej.X[m].mean()), sorted(paws_pink, key=lambda m: rej.X[m].mean()))):
     lado = "izq" if i == 0 else "der"
-    z0 = POCKET_T
+    z0 = POCKET_T + HEM_H
     cuerpo(f"manita_{lado}_contorno", f"3_manita_{lado}", "negro", rej, pb, z0 + R.almohada(rej.dist(pb), PAW_BACK_T, 0.4), z0)
     pp = pp & pb
     cuerpo(f"manita_{lado}_rosa", f"3_manita_{lado}", "rosa_bajito", rej, pp,
@@ -231,19 +240,80 @@ for c, h in zip(tallos, ALGA_H):
     alg_top = np.where(t, np.maximum(alg_top, tt), alg_top); alg |= t
 cuerpo("alga", "3_alga", "morado", rej, alg, alg_top, 0.0)
 
-# --- contexto provisional (se detalla en la Fase 3): panel y bolsillo lisos
-rg = R.Rejilla(-95, 95, 30, 202, res=0.25)   # rejilla gruesa para piezas grandes y lisas
-panel = rg.de_ref(R.mascara("panel")) & (rg.Y > 34.5)
-cuerpo("PROVISIONAL_panel", "0_provisional", "azul_cielo", rg, panel, R.almohada(rg.dist(panel), PANEL_T, 1.0), 0.0, back_y=PANEL_T)
-pk_g = rg.poligono(POCKET_PX)
-cuerpo("PROVISIONAL_bolsillo", "0_provisional", "azul_cielo", rg, pk_g, R.almohada(rg.dist(pk_g), POCKET_T, 1.2), 0.0)
-txt = rej.de_ref(R.mascara("texto_bolsillo"), 0.7)
-cuerpo("PROVISIONAL_texto", "0_provisional", "blanco", rej, txt, POCKET_T + R.almohada(rej.dist(txt), 1.0, 0.4), POCKET_T)
-qr = rg.de_ref(R.mascara("placas_qr"))
-cuerpo("PROVISIONAL_placas_qr", "0_provisional", "blanco", rg, qr, POCKET_T + 0.2 + 0 * qr, POCKET_T)
+# ================================================================ FASE 3: panel y bolsillo
+m_cost = R.mascara("costuras")
+m_pk = R.mascara("bolsillo")
+FOLD_Y = R.ref_a_modelo(0, json.load(open(R.F1 / "medidas.json"))["medidas"]["bolsillo_franja"]["y_mm"][0])[1]
+
+
+def incrustar(base_top, zona, alto, r, inlay=INLAY):
+    """Cuerpo de color incrustado: entra `inlay` en la pieza y sobresale `alto` con borde redondeado."""
+    bot = base_top - inlay
+    top = base_top + R.almohada(rej_act.dist(zona), alto, r)
+    return top, bot
+
+
+# --- PANEL (rejilla gruesa: pieza grande)
+rg = R.Rejilla(-102, 102, 8, 202, res=0.2)
+rej_act = rg
+panel = rg.de_ref(R.mascara("panel")) & (rg.Y > R.ALTO_BASE + 1.0)
+fila = panel[np.argmin(np.abs(rg.Y[:, 0] - (R.ALTO_BASE + 6))), :]
+xs_pan = rg.X[0][fila]
+panel |= (rg.X >= xs_pan.min()) & (rg.X <= xs_pan.max()) & (rg.Y >= R.ALTO_BASE - SLOT_DEPTH) & (rg.Y <= R.ALTO_BASE + 6)
+panel = R.sin_pellizcos(panel)
+pan_top = R.almohada(rg.dist(panel), PANEL_T, 1.2)
+# costuras del panel (las que están fuera del bolsillo), cada puntada en su lugar
+st_pan = rg.de_ref(m_cost & ~cv2.dilate(m_pk.astype(np.uint8), np.ones((9, 9), np.uint8)).astype(bool), 0.8) & panel
+st_top, st_bot = incrustar(pan_top, st_pan, STITCH_H, 0.4)
+# espalda: texto incrustado en espejo (se lee por detrás; esa cara se imprime contra la cama)
+yb = 0.5 * (R.ALTO_BASE + 150)
+espalda_txt = rg.texto([("Hecho por", 7, 0, yb + 26), ("Ajolote de Bolsillo", 12, 0, yb + 13),
+                        ("@ajolote_de_bolsillo", 9, 0, yb), ("Tótems y piezas 3D personalizadas", 6.5, 0, yb - 12),
+                        ("WhatsApp 311 167 5907", 6.5, 0, yb - 21)], str(R.HERE.parent / "vendor" / "fonts" / "Fredoka-700.ttf"),
+                       espejo=True) & rg.offset(panel, -3)
+pan_bot = np.where(espalda_txt, 0.6, 0.0)
+cuerpo("panel", "1_panel", "azul_cielo", rg, panel, np.where(st_pan, st_bot, pan_top), pan_bot, back_y=PANEL_T)
+cuerpo("panel_costuras", "1_panel", "amarillo_pastel", rg, st_pan, st_top, st_bot, back_y=PANEL_T)
+cuerpo("panel_espalda_texto", "1_panel", "blanco", rg, espalda_txt, 0.6 + 0 * pan_top, 0.0, back_y=PANEL_T)
+
+# --- BOLSILLO (rejilla fina: texto y costuras)
+rej_act = rej
+pk = pocket
+d_pk = rej.dist(pk)
+pk_top = R.almohada(d_pk, POCKET_T, 1.5)
+pk_top = pk_top + RIM_H * np.clip(1 - np.abs(d_pk - 2.2) / 1.2, 0, 1)            # borde levantado
+banda = pk & (rej.Y > FOLD_Y)
+pk_top = pk_top + HEM_H * np.clip((rej.Y - FOLD_Y) / 0.8, 0, 1) * (d_pk > 0.6)   # franja superior
+pk_top = pk_top - 0.35 * np.clip(1 - np.abs(rej.Y - FOLD_Y) / 0.5, 0, 1)          # doblez
+# huecos UV DTF: rectángulos redondeados a la medida de las placas de la referencia
+tiles = sorted(R.componentes(R.mascara("placas_qr"), 2000), key=lambda c: c["cx"])
+huecos, HUECOS_INFO = [], []
+for c, etiqueta in zip(tiles, ("TIENDA", "WHATSAPP")):
+    m = rej.de_ref(c["mask"])
+    xs, ys = rej.X[m], rej.Y[m]
+    x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
+    r = 3.2 * R.ESCALA
+    h = rej.rect_redondeado(x0, x1, y0, y1, r)
+    huecos.append(h)
+    HUECOS_INFO.append(dict(etiqueta=etiqueta, x0=round(float(x0), 2), x1=round(float(x1), 2), y0=round(float(y0), 2),
+                            y1=round(float(y1), 2), ancho=round(float(x1 - x0), 2), alto=round(float(y1 - y0), 2),
+                            radio=round(r, 2), profundidad=QR_RECESS))
+hueco = np.any(huecos, axis=0)
+pk_top = np.where(hueco, POCKET_T - QR_RECESS, pk_top)
+# costuras y texto del bolsillo
+st_pk = rej.de_ref(m_cost & m_pk, 0.8) & rej.offset(pk, -0.8) & ~rej.offset(hueco, 0.6)
+txt = rej.de_ref(R.mascara("texto_bolsillo"), 0.7) & pk & ~hueco
+stp_top, stp_bot = incrustar(pk_top, st_pk, STITCH_H, 0.4)
+tx_top, tx_bot = incrustar(pk_top, txt, TEXT_H, 0.5)
+pk_body_top = np.where(st_pk, stp_bot, np.where(txt, tx_bot, pk_top))
+cuerpo("bolsillo", "2_bolsillo", "azul_cielo", rej, pk, pk_body_top, 0.0)
+cuerpo("bolsillo_costuras", "2_bolsillo", "amarillo_pastel", rej, st_pk, stp_top, stp_bot)
+cuerpo("bolsillo_texto", "2_bolsillo", "blanco", rej, txt, tx_top, tx_bot)
+json.dump(dict(escala=R.ESCALA, alto_base=R.ALTO_BASE, huecos_uv_dtf=HUECOS_INFO), open(OUT / "medidas_modelo.json", "w"),
+          indent=1, ensure_ascii=False)
 
 # ---------------------------------------------------------------- guardar, exportar
-bpy.ops.wm.save_as_mainfile(filepath=str(OUT / "totem_fase2.blend"))
+bpy.ops.wm.save_as_mainfile(filepath=str(OUT / "totem.blend"))
 for ob in bpy.data.objects:
     if ob.type != "MESH":
         continue

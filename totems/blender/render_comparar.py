@@ -49,12 +49,14 @@ except Exception:
 cam_data = bpy.data.cameras.new("cam"); cam = bpy.data.objects.new("cam", cam_data)
 scene.collection.objects.link(cam); scene.camera = cam
 
-xc_mm = ((W - 1) / 2 - CX) / PX
-zc_mm = (Y1 - (H - 1) / 2) / PX
+sys.path.insert(0, str(HERE))
+import relieve as RL  # noqa: E402
+# encuadre: el centro de la imagen de referencia, llevado al espacio del modelo (escala + base real)
+xc_mm, zc_mm = RL.ref_a_modelo(((W - 1) / 2 - CX) / PX, (Y1 - (H - 1) / 2) / PX)
 
 
 def orto(nombre, loc, rot, res=(W, H)):
-    cam_data.type = "ORTHO"; cam_data.sensor_fit = "VERTICAL"; cam_data.ortho_scale = H / PX
+    cam_data.type = "ORTHO"; cam_data.sensor_fit = "VERTICAL"; cam_data.ortho_scale = H / PX * RL.ESCALA
     cam_data.clip_start, cam_data.clip_end = 1, 5000
     cam.location, cam.rotation_euler = loc, rot
     scene.render.resolution_x, scene.render.resolution_y = res

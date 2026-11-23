@@ -1,0 +1,146 @@
+[
+ {
+  "objeto": "ajolote_contorno",
+  "pieza": "3_ajolote",
+  "color": "negro",
+  "caras": 160000
+ },
+ {
+  "objeto": "ajolote_cabeza",
+  "pieza": "3_ajolote",
+  "color": "rosa_bajito",
+  "caras": 159998
+ },
+ {
+  "objeto": "ajolote_ojos",
+  "pieza": "3_ajolote",
+  "color": "negro",
+  "caras": 71716
+ },
+ {
+  "objeto": "ajolote_boca",
+  "pieza": "3_ajolote",
+  "color": "negro",
+  "caras": 7878
+ },
+ {
+  "objeto": "ajolote_branquias_rosa",
+  "pieza": "3_ajolote",
+  "color": "rosa_bajito",
+  "caras": 160000
+ },
+ {
+  "objeto": "ajolote_branquias_morado",
+  "pieza": "3_ajolote",
+  "color": "morado",
+  "caras": 160000
+ },
+ {
+  "objeto": "manita_izq_contorno",
+  "pieza": "3_manita_izq",
+  "color": "negro",
+  "caras": 51956
+ },
+ {
+  "objeto": "manita_izq_rosa",
+  "pieza": "3_manita_izq",
+  "color": "rosa_bajito",
+  "caras": 40280
+ },
+ {
+  "objeto": "manita_der_contorno",
+  "pieza": "3_manita_der",
+  "color": "negro",
+  "caras": 51374
+ },
+ {
+  "objeto": "manita_der_rosa",
+  "pieza": "3_manita_der",
+  "color": "rosa_bajito",
+  "caras": 39980
+ },
+ {
+  "objeto": "burbuja_1",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 57104
+ },
+ {
+  "objeto": "burbuja_2",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 7180
+ },
+ {
+  "objeto": "burbuja_3",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 58168
+ },
+ {
+  "objeto": "burbuja_4",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 20766
+ },
+ {
+  "objeto": "burbuja_5",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 8450
+ },
+ {
+  "objeto": "burbuja_6",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 49468
+ },
+ {
+  "objeto": "burbuja_7",
+  "pieza": "3_burbujas",
+  "color": "blanco",
+  "caras": 40954
+ },
+ {
+  "objeto": "alga",
+  "pieza": "3_alga",
+  "color": "morado",
+  "caras": 160000
+ },
+ {
+  "objeto": "panel",
+  "pieza": "1_panel",
+  "color": "azul_cielo",
+  "caras": 160000
+ },
+ {
+  "objeto": "panel_costuras",
+  "pieza": "1_panel",
+  "color": "amarillo_pastel",
+  "caras": 15798
+ },
+ {
+  "objeto": "panel_espalda_texto",
+  "pieza": "1_panel",
+  "color": "blanco",
+  "caras": 72812
+ },
+ {
+  "objeto": "bolsillo",
+  "pieza": "2_bolsillo",
+  "color": "azul_cielo",
+  "caras": 160000
+ },
+ {
+  "objeto": "bolsillo_costuras",
+  "pieza": "2_bolsillo",
+  "color": "amarillo_pastel",
+  "caras": 160000
+ },
+ {
+  "objeto": "bolsillo_texto",
+  "pieza": "2_bolsillo",
+  "color": "blanco",
+  "caras": 160000
+ }
+]
