@@ -10,6 +10,7 @@ texto:
   linea1_mm: 20             # tamaño de letra
   linea2_mm: 15
 
+qr_modo: "impreso"          # "impreso" (placa blanca + módulos negros en 3D) o "uv_dtf" (hueco liso para calcomanía)
 qr:                        # máx. 2, lado a lado dentro del bolsillo
   - {etiqueta: "TIENDA",   url: "https://ajolotedebolsillo.mitiendanube.com"}
   - {etiqueta: "WHATSAPP", url: "https://wa.me/523111675907"}

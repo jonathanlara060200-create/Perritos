@@ -92,7 +92,7 @@ MAX_CARAS = 160000
 T0 = time.time()
 
 
-def cuerpo(nombre, pieza, color, rej, dentro, top, bot, back_y=0.0):
+def cuerpo(nombre, pieza, color, rej, dentro, top, bot, back_y=0.0, suave=1.6):
     """Crea un objeto Blender (sólido cerrado) y lo coloca parado en el ensamble."""
     if not dentro.any():
         return None
@@ -102,7 +102,7 @@ def cuerpo(nombre, pieza, color, rej, dentro, top, bot, back_y=0.0):
     top = np.broadcast_to(np.asarray(top, float), dentro.shape)[r0:r1, c0:c1]
     bot = np.broadcast_to(np.asarray(bot, float), dentro.shape)[r0:r1, c0:c1]
     din = dentro[r0:r1, c0:c1]
-    top = R.suavizar(top, din, 1.6); bot = R.suavizar(bot, din, 1.6)
+    top = R.suavizar(top, din, suave); bot = R.suavizar(bot, din, suave)
     v, f = R.malla(sub, din, top, bot)
     me = bpy.data.meshes.new(nombre)
     nv, nf = len(v), len(f)
@@ -299,7 +299,36 @@ for c, etiqueta in zip(tiles, ("TIENDA", "WHATSAPP")):
                             y1=round(float(y1), 2), ancho=round(float(x1 - x0), 2), alto=round(float(y1 - y0), 2),
                             radio=round(r, 2), profundidad=QR_RECESS))
 hueco = np.any(huecos, axis=0)
-pk_top = np.where(hueco, POCKET_T - QR_RECESS, pk_top)
+import yaml  # noqa: E402
+CFG = yaml.safe_load(open(HERE.parent / "config" / "totem_ajolote.yaml", encoding="utf-8"))
+QR_MODO = CFG.get("qr_modo", "impreso")
+URLS = {q["etiqueta"]: q["url"] for q in CFG["qr"]}
+QR_INFO = []
+if QR_MODO == "impreso":
+    import segno  # noqa: E402
+    TILE_SINK, TILE_UP, MOD_INLAY = 0.6, 0.6, 0.6
+    tile_top = POCKET_T + TILE_UP
+    pk_top = np.where(hueco, POCKET_T - TILE_SINK, pk_top)
+    modulos = np.zeros_like(hueco); etiquetas = np.zeros_like(hueco)
+    for h, info in zip(huecos, HUECOS_INFO):
+        url = URLS[info["etiqueta"]]
+        m = np.array(segno.make(url, error=CFG.get("qr_correccion", "m"), boost_error=False).matrix, bool)
+        n = len(m); qz = 2
+        w = info["ancho"]; mod = w / (n + 2 * qz)
+        qx0 = info["x0"] + qz * mod; qy1 = info["y1"] - qz * mod
+        col = np.floor((rej.X - qx0) / mod).astype(int); row = np.floor((qy1 - rej.Y) / mod).astype(int)
+        ok = (col >= 0) & (col < n) & (row >= 0) & (row < n) & h
+        mm = np.zeros_like(hueco); mm[ok] = m[row[ok], col[ok]]
+        modulos |= mm
+        lab_y = info["y0"] + (info["alto"] - w + 1.4) / 2
+        etiquetas |= rej.texto([(info["etiqueta"], 4.6, (info["x0"] + info["x1"]) / 2, lab_y)],
+                               str(HERE.parent / "vendor" / "fonts" / "Fredoka-700.ttf")) & h
+        QR_INFO.append(dict(etiqueta=info["etiqueta"], url=url, version=int((n - 17) / 4), modulos=n, modulo_mm=round(mod, 3),
+                            placa_mm=[info["ancho"], info["alto"]]))
+    negro_qr = modulos | etiquetas
+    tile_body_top = np.where(negro_qr, tile_top - MOD_INLAY, tile_top)
+else:
+    pk_top = np.where(hueco, POCKET_T - QR_RECESS, pk_top)
 # costuras y texto del bolsillo
 st_pk = rej.de_ref(m_cost & m_pk, 0.8) & rej.offset(pk, -0.8) & ~rej.offset(hueco, 0.6)
 txt = rej.de_ref(R.mascara("texto_bolsillo"), 0.7) & pk & ~hueco
@@ -309,7 +338,10 @@ pk_body_top = np.where(st_pk, stp_bot, np.where(txt, tx_bot, pk_top))
 cuerpo("bolsillo", "2_bolsillo", "azul_cielo", rej, pk, pk_body_top, 0.0)
 cuerpo("bolsillo_costuras", "2_bolsillo", "amarillo_pastel", rej, st_pk, stp_top, stp_bot)
 cuerpo("bolsillo_texto", "2_bolsillo", "blanco", rej, txt, tx_top, tx_bot)
-json.dump(dict(escala=R.ESCALA, alto_base=R.ALTO_BASE, huecos_uv_dtf=HUECOS_INFO), open(OUT / "medidas_modelo.json", "w"),
+if QR_MODO == "impreso":
+    cuerpo("bolsillo_qr_placas", "2_bolsillo", "blanco", rej, hueco, tile_body_top, POCKET_T - TILE_SINK, suave=0)
+    cuerpo("bolsillo_qr_modulos", "2_bolsillo", "negro", rej, negro_qr & hueco, tile_top + 0 * tile_body_top, tile_top - MOD_INLAY, suave=0)
+json.dump(dict(escala=R.ESCALA, alto_base=R.ALTO_BASE, qr_modo=QR_MODO, qr_impresos=QR_INFO, huecos_uv_dtf=HUECOS_INFO), open(OUT / "medidas_modelo.json", "w"),
           indent=1, ensure_ascii=False)
 
 # ---------------------------------------------------------------- guardar, exportar
