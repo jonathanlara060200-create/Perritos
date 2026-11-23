@@ -1,0 +1,272 @@
+{
+ "piezas": {
+  "1_panel": {
+   "caja_mm": [
+    169.2,
+    190.0,
+    8.0
+   ],
+   "colores": [
+    "amarillo_pastel",
+    "azul_cielo",
+    "blanco"
+   ],
+   "objetos": [
+    "panel",
+    "panel_costuras",
+    "panel_espalda_texto"
+   ]
+  },
+  "2_bolsillo": {
+   "caja_mm": [
+    115.3,
+    109.1,
+    6.0
+   ],
+   "colores": [
+    "amarillo_pastel",
+    "azul_cielo",
+    "blanco",
+    "negro"
+   ],
+   "objetos": [
+    "bolsillo",
+    "bolsillo_costuras",
+    "bolsillo_texto",
+    "bolsillo_qr_placas",
+    "bolsillo_qr_modulos"
+   ]
+  },
+  "3_ajolote": {
+   "caja_mm": [
+    139.9,
+    65.1,
+    7.1
+   ],
+   "colores": [
+    "blanco",
+    "morado",
+    "negro",
+    "rosa_bajito"
+   ],
+   "objetos": [
+    "ajolote_contorno",
+    "ajolote_cabeza",
+    "ajolote_ojos",
+    "ajolote_brillos",
+    "ajolote_boca",
+    "ajolote_branquias_rosa",
+    "ajolote_branquias_morado"
+   ]
+  },
+  "3_alga": {
+   "caja_mm": [
+    35.5,
+    81.1,
+    8.8
+   ],
+   "colores": [
+    "morado"
+   ],
+   "objetos": [
+    "alga"
+   ]
+  },
+  "3_burbujas": {
+   "caja_mm": [
+    26.4,
+    107.8,
+    4.6
+   ],
+   "colores": [
+    "blanco"
+   ],
+   "objetos": [
+    "burbuja_1",
+    "burbuja_2",
+    "burbuja_3",
+    "burbuja_4",
+    "burbuja_5",
+    "burbuja_6",
+    "burbuja_7"
+   ]
+  },
+  "3_manita_der": {
+   "caja_mm": [
+    20.9,
+    15.3,
+    3.2
+   ],
+   "colores": [
+    "negro",
+    "rosa_bajito"
+   ],
+   "objetos": [
+    "manita_der_contorno",
+    "manita_der_rosa"
+   ]
+  },
+  "3_manita_izq": {
+   "caja_mm": [
+    21.2,
+    15.3,
+    3.2
+   ],
+   "colores": [
+    "negro",
+    "rosa_bajito"
+   ],
+   "objetos": [
+    "manita_izq_contorno",
+    "manita_izq_rosa"
+   ]
+  },
+  "4_base": {
+   "caja_mm": [
+    198.9,
+    75.9,
+    20.0
+   ],
+   "colores": [
+    "azul_cielo",
+    "blanco"
+   ],
+   "objetos": [
+    "base",
+    "base_texto"
+   ]
+  },
+  "5_boton_credit-card": {
+   "caja_mm": [
+    32.1,
+    32.1,
+    7.9
+   ],
+   "colores": [
+    "azul_cielo",
+    "blanco"
+   ],
+   "objetos": [
+    "boton_credit-card",
+    "boton_credit-card_icono"
+   ]
+  },
+  "5_boton_instagram": {
+   "caja_mm": [
+    32.1,
+    32.1,
+    7.9
+   ],
+   "colores": [
+    "blanco",
+    "morado"
+   ],
+   "objetos": [
+    "boton_instagram",
+    "boton_instagram_icono"
+   ]
+  },
+  "5_boton_whatsapp": {
+   "caja_mm": [
+    32.1,
+    32.1,
+    7.9
+   ],
+   "colores": [
+    "blanco",
+    "rosa_bajito"
+   ],
+   "objetos": [
+    "boton_whatsapp",
+    "boton_whatsapp_icono"
+   ]
+  }
+ },
+ "placas": {
+  "1": {
+   "piezas": [
+    "1_panel"
+   ],
+   "colores": [
+    "amarillo_pastel",
+    "azul_cielo",
+    "blanco"
+   ],
+   "ranuras_cfs": {
+    "1": "azul_cielo",
+    "2": "blanco",
+    "3": "amarillo_pastel"
+   }
+  },
+  "2": {
+   "piezas": [
+    "2_bolsillo"
+   ],
+   "colores": [
+    "amarillo_pastel",
+    "azul_cielo",
+    "blanco",
+    "negro"
+   ],
+   "ranuras_cfs": {
+    "1": "azul_cielo",
+    "2": "blanco",
+    "3": "amarillo_pastel",
+    "4": "negro"
+   }
+  },
+  "4": {
+   "piezas": [
+    "4_base"
+   ],
+   "colores": [
+    "azul_cielo",
+    "blanco"
+   ],
+   "ranuras_cfs": {
+    "1": "azul_cielo",
+    "2": "blanco"
+   }
+  },
+  "5": {
+   "piezas": [
+    "5_boton_instagram",
+    "5_boton_whatsapp",
+    "5_boton_credit-card"
+   ],
+   "colores": [
+    "azul_cielo",
+    "blanco",
+    "morado",
+    "rosa_bajito"
+   ],
+   "ranuras_cfs": {
+    "1": "azul_cielo",
+    "2": "blanco",
+    "3": "morado",
+    "4": "rosa_bajito"
+   }
+  },
+  "3": {
+   "piezas": [
+    "3_ajolote",
+    "3_manita_izq",
+    "3_manita_der",
+    "3_burbujas",
+    "3_alga"
+   ],
+   "colores": [
+    "blanco",
+    "morado",
+    "negro",
+    "rosa_bajito"
+   ],
+   "ranuras_cfs": {
+    "1": "negro",
+    "2": "blanco",
+    "3": "morado",
+    "4": "rosa_bajito"
+   }
+  }
+ }
+}

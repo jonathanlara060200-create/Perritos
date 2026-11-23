@@ -1,0 +1,144 @@
+{
+ "file": "3_burbujas__blanco__burbuja_1.stl + 3_burbujas__blanco__burbuja_2.stl + 3_burbujas__blanco__burbuja_3.stl + 3_burbujas__blanco__burbuja_4.stl + 3_burbujas__blanco__burbuja_5.stl + 3_burbujas__blanco__burbuja_6.stl + 3_burbujas__blanco__burbuja_7.stl",
+ "process": "fdm",
+ "triangles": 136016,
+ "vertices": 68022,
+ "scale": 1.0,
+ "dims_mm": [
+  26.4,
+  107.8,
+  4.599
+ ],
+ "parts": 7,
+ "closed_parts": 7,
+ "empty_parts": 0,
+ "open_edges": 0,
+ "nonmanifold_edges": 0,
+ "inconsistent_edges": 0,
+ "nonmanifold_vertices": 0,
+ "self_intersecting_pairs": 0,
+ "intersecting_part_pairs": 0,
+ "floating_parts": 0,
+ "floating": [],
+ "inverted_parts": 0,
+ "cavities": 0,
+ "volume_mm3": 4673.798,
+ "overhang_area_pct": 0.97,
+ "thickness": {
+  "min_wall_mm": 0.8,
+  "faces_thin_pct": 0.0,
+  "area_thin_pct": 0.0,
+  "min_scale": 0.5,
+  "sampled": 50000,
+  "of": 136016,
+  "thin_at": [
+   {
+    "at_mm": [
+     -12.39,
+     18.47,
+     0.03
+    ],
+    "wall_mm": 0.645
+   },
+   {
+    "at_mm": [
+     -4.88,
+     -0.04,
+     0.03
+    ],
+    "wall_mm": 0.651
+   }
+  ],
+  "min_scale_union": 0.319,
+  "min_scale_set_by": "3_burbujas__blanco__burbuja_2.stl",
+  "min_dims_mm": [
+   13.2,
+   53.9,
+   2.3
+  ]
+ },
+ "assembly": {
+  "parts": [
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/3_burbujas/3_burbujas__blanco__burbuja_1.stl",
+    "triangles": 114208,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.286
+   },
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/3_burbujas/3_burbujas__blanco__burbuja_2.stl",
+    "triangles": 14360,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.5
+   },
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/3_burbujas/3_burbujas__blanco__burbuja_3.stl",
+    "triangles": 116336,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.286
+   },
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/3_burbujas/3_burbujas__blanco__burbuja_4.stl",
+    "triangles": 41532,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.308
+   },
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/3_burbujas/3_burbujas__blanco__burbuja_5.stl",
+    "triangles": 16900,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.444
+   },
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/3_burbujas/3_burbujas__blanco__burbuja_6.stl",
+    "triangles": 98936,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.286
+   },
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/3_burbujas/3_burbujas__blanco__burbuja_7.stl",
+    "triangles": 81908,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.287
+   }
+  ],
+  "voxel_mm": 0.25,
+  "volume_parts_mm3": 4673.8,
+  "volume_union_mm3": 4668.2,
+  "overlap_mm3": 5.6
+ },
+ "verdict": "PASS",
+ "fails": [],
+ "warnings": [
+  "assembly of 7 files: their union checked as one object (voxel 0.25 mm) \u2014 load them in the slicer as ONE object with several parts",
+  "0.97 % of the area overhangs more than 45\u00b0 \u2014 small areas bridge; --slicer says whether it needs supports"
+ ]
+}

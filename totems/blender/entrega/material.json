@@ -1,0 +1,50 @@
+{
+ "por_color_g": {
+  "azul_cielo": 188.2,
+  "negro": 17.9,
+  "rosa_bajito": 17.0,
+  "blanco": 15.6,
+  "morado": 11.7,
+  "amarillo_pastel": 0.8
+ },
+ "por_placa": {
+  "1": {
+   "gramos_pieza": 87.6,
+   "cambios_color": 12,
+   "purga_g": 4.2,
+   "total_g": 91.8,
+   "horas_aprox": 6.5
+  },
+  "2": {
+   "gramos_pieza": 37.9,
+   "cambios_color": 33,
+   "purga_g": 11.5,
+   "total_g": 49.5,
+   "horas_aprox": 3.3
+  },
+  "4": {
+   "gramos_pieza": 72.5,
+   "cambios_color": 5,
+   "purga_g": 1.8,
+   "total_g": 74.2,
+   "horas_aprox": 5.3
+  },
+  "5": {
+   "gramos_pieza": 10.0,
+   "cambios_color": 12,
+   "purga_g": 4.2,
+   "total_g": 14.2,
+   "horas_aprox": 0.9
+  },
+  "3": {
+   "gramos_pieza": 43.2,
+   "cambios_color": 66,
+   "purga_g": 23.1,
+   "total_g": 66.3,
+   "horas_aprox": 4.3
+  }
+ },
+ "total_g": 296.0,
+ "horas_total_aprox": 20.3,
+ "nota": "Estimación; el dato real sale al laminar en Creality Print."
+}

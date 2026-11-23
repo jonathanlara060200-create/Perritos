@@ -1,0 +1,192 @@
+{
+ "file": "1_panel__amarillo_pastel__panel_costuras.stl + 1_panel__azul_cielo__panel.stl + 1_panel__blanco__panel_espalda_texto.stl",
+ "process": "fdm",
+ "triangles": 2044412,
+ "vertices": 1022208,
+ "scale": 1.0,
+ "dims_mm": [
+  169.093,
+  190.0,
+  8.0
+ ],
+ "parts": 1,
+ "closed_parts": 1,
+ "empty_parts": 0,
+ "open_edges": 0,
+ "nonmanifold_edges": 0,
+ "inconsistent_edges": 0,
+ "nonmanifold_vertices": 0,
+ "self_intersecting_pairs": 0,
+ "intersecting_part_pairs": 0,
+ "floating_parts": 0,
+ "floating": [],
+ "inverted_parts": 0,
+ "cavities": 0,
+ "volume_mm3": 174613.565,
+ "overhang_area_pct": 0.0,
+ "thickness": {
+  "min_wall_mm": 0.8,
+  "faces_thin_pct": 0.05,
+  "area_thin_pct": 0.04,
+  "min_scale": 0.831,
+  "sampled": 50000,
+  "of": 2044412,
+  "thin_at": [
+   {
+    "at_mm": [
+     82.82,
+     -83.96,
+     3.54
+    ],
+    "wall_mm": 0.052
+   },
+   {
+    "at_mm": [
+     82.71,
+     -84.0,
+     5.21
+    ],
+    "wall_mm": 0.08
+   },
+   {
+    "at_mm": [
+     84.46,
+     -47.0,
+     0.29
+    ],
+    "wall_mm": 0.313
+   },
+   {
+    "at_mm": [
+     84.43,
+     -46.66,
+     3.71
+    ],
+    "wall_mm": 0.384
+   },
+   {
+    "at_mm": [
+     84.21,
+     -47.0,
+     1.29
+    ],
+    "wall_mm": 0.443
+   },
+   {
+    "at_mm": [
+     84.24,
+     -46.57,
+     4.96
+    ],
+    "wall_mm": 0.471
+   },
+   {
+    "at_mm": [
+     76.99,
+     -48.96,
+     6.46
+    ],
+    "wall_mm": 0.579
+   },
+   {
+    "at_mm": [
+     84.09,
+     -46.49,
+     2.54
+    ],
+    "wall_mm": 0.59
+   },
+   {
+    "at_mm": [
+     83.15,
+     -46.24,
+     0.54
+    ],
+    "wall_mm": 0.788
+   },
+   {
+    "at_mm": [
+     82.94,
+     -46.22,
+     5.42
+    ],
+    "wall_mm": 0.796
+   },
+   {
+    "at_mm": [
+     82.71,
+     -46.2,
+     2.96
+    ],
+    "wall_mm": 0.8
+   },
+   {
+    "at_mm": [
+     82.79,
+     -46.2,
+     1.54
+    ],
+    "wall_mm": 0.8
+   },
+   {
+    "at_mm": [
+     82.54,
+     -47.0,
+     0.96
+    ],
+    "wall_mm": 0.8
+   }
+  ],
+  "min_scale_union": 0.134,
+  "min_scale_set_by": "1_panel__amarillo_pastel__panel_costuras.stl",
+  "min_dims_mm": [
+   140.5,
+   157.9,
+   6.6
+  ]
+ },
+ "assembly": {
+  "parts": [
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/1_panel/1_panel__amarillo_pastel__panel_costuras.stl",
+    "triangles": 31392,
+    "parts": 36,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.831
+   },
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/1_panel/1_panel__azul_cielo__panel.stl",
+    "triangles": 160000,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.147
+   },
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/1_panel/1_panel__blanco__panel_espalda_texto.stl",
+    "triangles": 145624,
+    "parts": 94,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.8
+   }
+  ],
+  "voxel_mm": 0.25,
+  "volume_parts_mm3": 174612.4,
+  "volume_union_mm3": 174603.2,
+  "overlap_mm3": 9.2
+ },
+ "verdict": "PASS",
+ "fails": [],
+ "warnings": [
+  "assembly of 3 files: their union checked as one object (voxel 0.25 mm) \u2014 load them in the slicer as ONE object with several parts",
+  "0.05 % of faces on a wall under 0.8 mm (0.04 % of the area)"
+ ]
+}

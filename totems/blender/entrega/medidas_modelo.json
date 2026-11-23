@@ -1,0 +1,53 @@
+{
+ "escala": 1.094890510948905,
+ "alto_base": 20.0,
+ "qr_modo": "impreso",
+ "qr_impresos": [
+  {
+   "etiqueta": "TIENDA",
+   "url": "https://ajolotedebolsillo.mitiendanube.com",
+   "version": 3,
+   "modulos": 29,
+   "modulo_mm": 1.142,
+   "placa_mm": [
+    37.7,
+    42.1
+   ]
+  },
+  {
+   "etiqueta": "WHATSAPP",
+   "url": "https://wa.me/523111675907",
+   "version": 2,
+   "modulos": 25,
+   "modulo_mm": 1.297,
+   "placa_mm": [
+    37.6,
+    42.3
+   ]
+  }
+ ],
+ "huecos_uv_dtf": [
+  {
+   "etiqueta": "TIENDA",
+   "x0": -37.45,
+   "x1": 0.25,
+   "y0": 36.55,
+   "y1": 78.65,
+   "ancho": 37.7,
+   "alto": 42.1,
+   "radio": 3.5,
+   "profundidad": 0.4
+  },
+  {
+   "etiqueta": "WHATSAPP",
+   "x0": 7.35,
+   "x1": 44.95,
+   "y0": 36.55,
+   "y1": 78.85,
+   "ancho": 37.6,
+   "alto": 42.3,
+   "radio": 3.5,
+   "profundidad": 0.4
+  }
+ ]
+}

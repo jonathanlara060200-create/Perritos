@@ -1,0 +1,111 @@
+{
+ "file": "3_manita_izq__negro__manita_izq_contorno.stl + 3_manita_izq__rosa_bajito__manita_izq_rosa.stl",
+ "process": "fdm",
+ "triangles": 555540,
+ "vertices": 277772,
+ "scale": 1.0,
+ "dims_mm": [
+  21.2,
+  15.3,
+  3.199
+ ],
+ "parts": 1,
+ "closed_parts": 1,
+ "empty_parts": 0,
+ "open_edges": 0,
+ "nonmanifold_edges": 0,
+ "inconsistent_edges": 0,
+ "nonmanifold_vertices": 0,
+ "self_intersecting_pairs": 0,
+ "intersecting_part_pairs": 0,
+ "floating_parts": 0,
+ "floating": [],
+ "inverted_parts": 0,
+ "cavities": 0,
+ "volume_mm3": 614.982,
+ "overhang_area_pct": 0.98,
+ "thickness": {
+  "min_wall_mm": 0.8,
+  "faces_thin_pct": 0.01,
+  "area_thin_pct": 0.01,
+  "min_scale": 0.86,
+  "sampled": 50000,
+  "of": 555540,
+  "thin_at": [
+   {
+    "at_mm": [
+     -8.79,
+     5.02,
+     0.01
+    ],
+    "wall_mm": 0.048
+   },
+   {
+    "at_mm": [
+     -8.79,
+     -5.12,
+     0.89
+    ],
+    "wall_mm": 0.1
+   },
+   {
+    "at_mm": [
+     9.48,
+     -4.34,
+     0.88
+    ],
+    "wall_mm": 0.593
+   },
+   {
+    "at_mm": [
+     8.3,
+     3.51,
+     1.37
+    ],
+    "wall_mm": 0.751
+   }
+  ],
+  "min_scale_union": 0.848,
+  "min_scale_set_by": "3_manita_izq__negro__manita_izq_contorno.stl",
+  "min_dims_mm": [
+   18.2,
+   13.2,
+   2.8
+  ]
+ },
+ "assembly": {
+  "parts": [
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/3_manita_izq/3_manita_izq__negro__manita_izq_contorno.stl",
+    "triangles": 102044,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.86
+   },
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/3_manita_izq/3_manita_izq__rosa_bajito__manita_izq_rosa.stl",
+    "triangles": 80560,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.577
+   }
+  ],
+  "voxel_mm": 0.053,
+  "volume_parts_mm3": 614.7,
+  "volume_union_mm3": 615.1,
+  "overlap_mm3": 0.0
+ },
+ "verdict": "PASS",
+ "fails": [],
+ "warnings": [
+  "assembly of 2 files: their union checked as one object (voxel 0.053 mm) \u2014 load them in the slicer as ONE object with several parts",
+  "0.01 % of faces on a wall under 0.8 mm (0.01 % of the area)",
+  "0.98 % of the area overhangs more than 45\u00b0 \u2014 small areas bridge; --slicer says whether it needs supports"
+ ]
+}

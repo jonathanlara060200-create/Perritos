@@ -1,0 +1,96 @@
+{
+ "file": "/home/user/Perritos/totems/blender/impresion/stl/3_alga/3_alga__morado__alga.stl",
+ "process": "fdm",
+ "triangles": 160000,
+ "vertices": 80006,
+ "scale": 1.0,
+ "dims_mm": [
+  35.5,
+  81.1,
+  8.798
+ ],
+ "parts": 3,
+ "closed_parts": 3,
+ "empty_parts": 0,
+ "open_edges": 0,
+ "nonmanifold_edges": 0,
+ "inconsistent_edges": 0,
+ "nonmanifold_vertices": 0,
+ "self_intersecting_pairs": 0,
+ "intersecting_part_pairs": 0,
+ "floating_parts": 0,
+ "floating": [],
+ "inverted_parts": 0,
+ "cavities": 0,
+ "volume_mm3": 10496.36,
+ "overhang_area_pct": 0.23,
+ "thickness": {
+  "min_wall_mm": 0.8,
+  "faces_thin_pct": 0.02,
+  "area_thin_pct": 0.06,
+  "min_scale": 0.222,
+  "sampled": 50000,
+  "of": 160000,
+  "thin_at": [
+   {
+    "at_mm": [
+     -2.55,
+     -40.55,
+     3.84
+    ],
+    "wall_mm": 0.2
+   },
+   {
+    "at_mm": [
+     -6.68,
+     -40.55,
+     2.81
+    ],
+    "wall_mm": 0.3
+   },
+   {
+    "at_mm": [
+     4.68,
+     -40.52,
+     7.38
+    ],
+    "wall_mm": 0.478
+   },
+   {
+    "at_mm": [
+     -6.82,
+     -40.52,
+     4.29
+    ],
+    "wall_mm": 0.513
+   },
+   {
+    "at_mm": [
+     4.78,
+     -40.55,
+     4.91
+    ],
+    "wall_mm": 0.6
+   },
+   {
+    "at_mm": [
+     -2.62,
+     -40.52,
+     5.77
+    ],
+    "wall_mm": 0.665
+   }
+  ],
+  "min_dims_mm": [
+   7.9,
+   18.0,
+   2.0
+  ]
+ },
+ "verdict": "PASS",
+ "fails": [],
+ "warnings": [
+  "0.02 % of faces on a wall under 0.8 mm (0.06 % of the area)",
+  "0.23 % of the area overhangs more than 45\u00b0 \u2014 small areas bridge; --slicer says whether it needs supports"
+ ]
+}

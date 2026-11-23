@@ -1,0 +1,76 @@
+{
+ "file": "5_boton_instagram__blanco__boton_instagram_icono.stl + 5_boton_instagram__morado__boton_instagram.stl",
+ "process": "fdm",
+ "triangles": 817808,
+ "vertices": 408906,
+ "scale": 1.0,
+ "dims_mm": [
+  32.06,
+  32.08,
+  7.9
+ ],
+ "parts": 1,
+ "closed_parts": 1,
+ "empty_parts": 0,
+ "open_edges": 0,
+ "nonmanifold_edges": 0,
+ "inconsistent_edges": 0,
+ "nonmanifold_vertices": 0,
+ "self_intersecting_pairs": 0,
+ "intersecting_part_pairs": 0,
+ "floating_parts": 0,
+ "floating": [],
+ "inverted_parts": 0,
+ "cavities": 0,
+ "volume_mm3": 6123.43,
+ "overhang_area_pct": 0.0,
+ "thickness": {
+  "min_wall_mm": 0.8,
+  "faces_thin_pct": 0.0,
+  "area_thin_pct": 0.0,
+  "min_scale": 0.588,
+  "sampled": 50000,
+  "of": 817808,
+  "thin_at": [],
+  "min_scale_union": 0.116,
+  "min_scale_set_by": "5_boton_instagram__blanco__boton_instagram_icono.stl",
+  "min_dims_mm": [
+   18.9,
+   18.9,
+   4.6
+  ]
+ },
+ "assembly": {
+  "parts": [
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/5_boton_instagram/5_boton_instagram__blanco__boton_instagram_icono.stl",
+    "triangles": 69728,
+    "parts": 3,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.588
+   },
+   {
+    "file": "/home/user/Perritos/totems/blender/impresion/stl/5_boton_instagram/5_boton_instagram__morado__boton_instagram.stl",
+    "triangles": 160000,
+    "parts": 1,
+    "closed": true,
+    "open_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "min_scale": 0.113
+   }
+  ],
+  "voxel_mm": 0.0802,
+  "volume_parts_mm3": 6125.1,
+  "volume_union_mm3": 6125.1,
+  "overlap_mm3": 0.0
+ },
+ "verdict": "PASS",
+ "fails": [],
+ "warnings": [
+  "assembly of 2 files: their union checked as one object (voxel 0.0802 mm) \u2014 load them in the slicer as ONE object with several parts"
+ ]
+}

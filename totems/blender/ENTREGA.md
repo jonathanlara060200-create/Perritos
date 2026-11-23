@@ -7,13 +7,14 @@ Impresora: Creality SparkX i7 + CFS Lite (máx. 4 colores por placa). Filamento:
 
 | Archivo | Para qué |
 |---|---|
-| `totem/totem.blend` | Modelo editable (Blender 5.x), una colección por pieza |
-| `impresion/3mf/placa_1.3mf` … `placa_5.3mf` | Una placa por archivo, cada pieza con sus colores ya asignados a las ranuras del CFS |
-| `impresion/stl/<pieza>/*.stl` | Una STL por pieza y color, ya acostada sobre la cama (respaldo del 3MF) |
-| `impresion/stl_ensamble/totem_completo.stl` | Todo el tótem armado, solo de referencia |
-| `impresion/revision/*.json` | Revisión de imprimibilidad de cada pieza (Blender Kiln `print_check`) |
-| `fase5/lamina_4_vistas.png` | Vistas ortográficas: frente, espalda, lado izquierdo y lado derecho |
-| `fase5/render/explosion.png` | Vista explotada del ensamble |
+| `entrega/totem_ajolote_de_bolsillo.blend` | Modelo editable (Blender 5.x), una colección por pieza |
+| `entrega/placa_1.3mf` … `placa_5.3mf` | Una placa por archivo, cada pieza con sus colores ya asignados a las ranuras del CFS |
+| `entrega/stl_placa_1.zip` … `stl_placa_5.zip` | Una STL por pieza y color, ya acostada sobre la cama (respaldo del 3MF) |
+| `entrega/stl_ensamble_completo.zip` | Todo el tótem armado, solo de referencia |
+| `entrega/revision_impresion/*.json` | Revisión de imprimibilidad de cada pieza (Blender Kiln `print_check`) |
+| `entrega/material.json`, `placas.json`, `ensamble.json` | Gramos estimados, placas y ranuras del CFS, pernos y revisión de choques |
+| `final/lamina_4_vistas.png` | Vistas ortográficas: frente, espalda, lado izquierdo y lado derecho |
+| `final/render/tres_cuartos.png`, `explosion.png` | Render 3/4 y vista explotada del ensamble |
 | `fase4/corte_boton_nfc.png` | Corte de la base por un botón: alojamiento, cavidad del tag y orificio para expulsar |
 | `uv_dtf/` | Alternativa: calcomanías UV DTF para los QR, con su línea de corte (`qr_modo: uv_dtf`) |
 
@@ -77,8 +78,8 @@ Todo embona a presión. Los huecos son 0.1 mm más grandes que los pernos (`ajus
 
 ## Validación hecha
 
-- **Imprimibilidad (Blender Kiln `print_check`, FDM):** ver `impresion/revision/` (veredicto, bordes abiertos, partes flotantes y área con paredes de menos de 0.8 mm, pieza por pieza).
+- **Imprimibilidad (Blender Kiln `print_check`, FDM):** las 11 piezas dan **PASS**. Están cerradas, sin bordes abiertos, sin partes flotando ni invertidas. El área con paredes de menos de 0.8 mm es como máximo 0.06 % por pieza (orillas redondeadas), sin piezas frágiles. Detalle en `entrega/revision_impresion/`.
 - **Medidas:** todas caben en el área útil de 240 × 240 mm. Ninguna placa pasa de 4 colores.
 - **Ensamble:** ninguna pieza choca con otra. Los 17 pernos del panel quedan a 13 mm o más de su borde.
-- **Parecido con la referencia (medido):** 97.5 % de coincidencia de color en la vista frontal.
+- **Parecido con la referencia (medido):** 95.8 % de coincidencia de color en la vista frontal. Baja respecto a la Fase 3 (97.5 %) porque se quitaron los flecos de menos de 0.8 mm de las branquias, para que no se rompan.
 - **QR:** los 2 se leen desde el render frontal.
