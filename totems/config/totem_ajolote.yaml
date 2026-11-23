@@ -1,0 +1,54 @@
+# Tótem "El Bolsillo" de Ajolote de Bolsillo: todo lo que se puede cambiar sin tocar código.
+# Medidas en mm. Colores: nombres de filamentos_pla de negocio.yaml.
+
+nombre_pieza: "bolsillo_ajolote_20cm"
+tolerancia: 0.2            # holgura por lado en ranuras, huecos y pernos
+
+texto:
+  linea1: "Ajolote"
+  linea2: "de Bolsillo"
+  linea1_mm: 20             # tamaño de letra
+  linea2_mm: 15
+
+qr:                        # máx. 2, lado a lado dentro del bolsillo
+  - {etiqueta: "TIENDA",   url: "https://ajolotedebolsillo.mitiendanube.com"}
+  - {etiqueta: "WHATSAPP", url: "https://wa.me/523111675907"}
+qr_modulo_mm: 1.5
+qr_zona_silenciosa: 4
+qr_correccion: "m"
+
+botones_nfc:               # se programan con la app NFC Tools; uno por botón
+  - {icono: "instagram", color: "morado", url: "https://instagram.com/ajolote_de_bolsillo"}
+  - {icono: "whatsapp",  color: "rosa_bajito", url: "https://wa.me/523111675907"}
+  - {icono: "store",     color: "azul_cielo", url: "https://ajolotedebolsillo.mitiendanube.com"}
+boton_diametro: 32
+boton_alto: 8
+hueco_boton_profundo: 4
+tag_nfc_diametro: 25
+
+base_texto: "ACERCA TU CELULAR"
+
+espalda:                   # incrustado en la espalda del pilar (se imprime contra la cama)
+  - {texto: "Hecho por", mm: 8}
+  - {texto: "Ajolote de Bolsillo", mm: 11}
+  - {texto: "@ajolote_de_bolsillo", mm: 9.5}
+  - {texto: "Tótems y piezas 3D personalizadas", mm: 7}
+  - {texto: "WhatsApp 311 167 5907", mm: 7}
+
+colores:
+  pilar: "azul_cielo"
+  costuras: "amarillo_pastel"
+  espalda_texto: "blanco"
+  bolsillo: "azul_cielo"
+  bolsillo_texto: "blanco"
+  qr_fondo: "blanco"
+  qr_modulos: "negro"
+  ajolote: "rosa_bajito"
+  branquias: "morado"
+  ojos: "negro"
+  brillos: "blanco"
+  burbujas: "blanco"
+  alga: "morado"
+  base: "azul_cielo"
+  base_texto: "blanco"
+  icono_boton: "blanco"

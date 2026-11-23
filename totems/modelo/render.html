@@ -1,0 +1,62 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#efe9e1;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"../vendor/three/three.module.js"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { STLLoader } from '../vendor/three/STLLoader.js';
+const q = new URLSearchParams(location.search);
+const dir = q.get('dir'), view = q.get('view') || 'tres_cuartos';
+const W = +(q.get('w') || 1400), H = +(q.get('h') || 1400);
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+r.setSize(W, H); r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+r.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(view === 'frente_qr' ? 0xffffff : 0xefe9e1);
+// Z-up del modelo -> Y-up de three
+const root = new THREE.Group(); root.rotation.x = -Math.PI / 2; scene.add(root);
+const manifest = await (await fetch(`${dir}/manifest.json`)).json();
+const loader = new STLLoader();
+for (const m of manifest) {
+  const g = await new Promise(res => loader.load(`${dir}/${m.archivo}`, res));
+  g.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(m.hex), roughness: 0.78, metalness: 0.0 });
+  const mesh = new THREE.Mesh(g, mat); mesh.castShadow = true; mesh.receiveShadow = true; root.add(mesh);
+}
+// mostrador
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshStandardMaterial({ color: view === 'frente_qr' ? 0xffffff : 0xcaa27a, roughness: 0.9 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; if (view !== 'frente_qr') scene.add(floor);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a7a6a, view === 'frente_qr' ? 2.2 : 1.4));
+const sun = new THREE.DirectionalLight(0xffffff, view === 'frente_qr' ? 0.8 : 2.0);
+sun.position.set(-250, 420, 380); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
+Object.assign(sun.shadow.camera, { left: -300, right: 300, top: 300, bottom: -300, near: 10, far: 2000 });
+sun.shadow.radius = 4; scene.add(sun);
+const fill = new THREE.DirectionalLight(0xffffff, 0.6); fill.position.set(300, 150, 300); scene.add(fill);
+let cam;
+const target = new THREE.Vector3(0, 100, 0);
+if (view === 'frente' || view === 'frente_qr') {
+  cam = new THREE.OrthographicCamera(-115, 115, 115, -115, 1, 3000); cam.position.set(0, 100, 1000);
+  target.set(0, 100, 0);
+} else if (view === 'espalda') {
+  cam = new THREE.OrthographicCamera(-115, 115, 115, -115, 1, 3000); cam.position.set(0, 100, -1000);
+} else if (view === 'lado') {
+  cam = new THREE.PerspectiveCamera(22, W / H, 1, 5000); cam.position.set(720, 220, 120);
+} else if (view === 'explosion') {
+  cam = new THREE.PerspectiveCamera(26, W / H, 1, 5000); cam.position.set(620, 380, 560);
+} else {
+  cam = new THREE.PerspectiveCamera(22, W / H, 1, 5000); cam.position.set(-380, 300, 560);
+}
+if (view === 'explosion') {
+  // separa las capas hacia el frente (-Y del modelo) para enseñar cómo se arma
+  root.children.forEach((c, i) => {
+    const p = manifest[i].pieza;
+    if (p.startsWith('2_')) c.position.y = -45;
+    else if (p.startsWith('3_manita')) c.position.y = -135;
+    else if (p.startsWith('3_')) c.position.y = -90;
+    else if (p.startsWith('5_')) c.position.z = 28;
+  });
+  target.set(0, 80, 60);
+}
+if (view === 'espalda') { const back = new THREE.DirectionalLight(0xffffff, 2.2); back.position.set(100, 300, -500); scene.add(back); }
+cam.lookAt(target);
+r.render(scene, cam);
+window.__done = true;
+</script></body></html>

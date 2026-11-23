@@ -1,0 +1,4 @@
+# Archivos generados por totems/modelo (se regeneran con el script)
+salida/*/stl/
+salida/*/ensamble/
+__pycache__/
