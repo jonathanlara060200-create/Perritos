@@ -1,0 +1,16 @@
+# Dependencias
+node_modules/
+package-lock.json
+
+# Builds de Next.js / OpenNext / Wrangler
+.next/
+.open-next/
+.wrangler/
+next-env.d.ts
+
+# Supabase CLI
+supabase/.temp/
+
+# Variables locales
+.env*.local
+.env
