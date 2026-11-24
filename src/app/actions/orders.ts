@@ -5,33 +5,32 @@ import { z } from 'zod'
 import { getProfile, requireUser } from '@/lib/auth'
 import { go } from '@/lib/flash'
 import { createClient } from '@/lib/supabase/server'
-import { DESIGN_SPECS } from '@/lib/plate-art'
-import { FILAMENT_NAMES, FONT_IDS, MAX_NAME_LENGTH, SHAPE_IDS, SIZE_IDS, filamentOf } from '@/lib/plate'
+import { MAX_NAME_LENGTH, filamentOf } from '@/lib/plate'
 import { createPreference, mpEnabled } from '@/lib/mercadopago'
 import { siteUrl, str } from '@/lib/utils'
 
 const schema = z.object({
-  pet_id: z.string().uuid('Elige una mascota.'),
-  variant_id: z.string().uuid('Elige un producto y un color.'),
+  pet_id: z.string().uuid('Elige a tu mascota.'),
   shipping_name: z.string().min(2, 'Escribe el nombre de quien recibe.').max(120),
   shipping_phone: z.string().min(8, 'Escribe un teléfono de contacto.').max(30),
   street: z.string().min(3, 'Escribe la calle y número.').max(160),
   neighborhood: z.string().min(2, 'Escribe la colonia.').max(100),
   city: z.string().min(2, 'Escribe la ciudad.').max(100),
   state: z.string().min(2, 'Escribe el estado.').max(100),
-  silhouette: z.enum(SHAPE_IDS).default('circulo'),
-  size_code: z.enum(SIZE_IDS).default('M'),
-  font: z.enum(FONT_IDS).default('redondeada'),
-  letter_color: z.enum(FILAMENT_NAMES, { message: 'Elige uno de los colores de letra disponibles.' }),
-  zone_2: z.enum(FILAMENT_NAMES, { message: 'Elige uno de los colores disponibles para cada parte.' }),
   zip: z.string().regex(/^\d{5}$/, 'El código postal debe tener 5 dígitos.'),
 })
 
+type Variant = { id: string; color_name: string; price_delta: number; is_active: boolean }
+
+/**
+ * Pedido simple: el cliente solo elige a su mascota (con foto) y el nombre.
+ * El diseño (silueta, colores, tipografía) lo hace Ajolote de Bolsillo a partir de la foto,
+ * así que no se envían silueta, tamaño, letra ni colores: la base los acepta vacíos.
+ */
 export async function createOrder(fd: FormData) {
   await requireUser()
   const parsed = schema.safeParse({
     pet_id: fd.get('pet_id'),
-    variant_id: fd.get('variant_id'),
     shipping_name: str(fd.get('shipping_name')) ?? '',
     shipping_phone: str(fd.get('shipping_phone')) ?? '',
     street: str(fd.get('street')) ?? '',
@@ -39,38 +38,47 @@ export async function createOrder(fd: FormData) {
     city: str(fd.get('city')) ?? '',
     state: str(fd.get('state')) ?? '',
     zip: str(fd.get('zip')) ?? '',
-    silhouette: str(fd.get('silhouette')) ?? undefined,
-    size_code: str(fd.get('size_code')) ?? undefined,
-    font: str(fd.get('font')) ?? undefined,
-    letter_color: filamentOf(str(fd.get('letter_color')))?.name,
-    zone_2: filamentOf(str(fd.get('zone_2')))?.name,
   })
   const back = `/orders/new?pet=${typeof fd.get('pet_id') === 'string' ? fd.get('pet_id') : ''}`
   if (!parsed.success) go(back, 'error', parsed.error.issues[0].message)
   const v = parsed.data
-  const spec = DESIGN_SPECS[v.silhouette]
-  if (v.letter_color === (spec.lettersOn === 'z2' ? v.zone_2 : null)) go(back, 'error', 'Las letras no pueden ser del mismo color que el fondo del nombre.')
   const engraved = str(fd.get('engraved_name'))
   if (engraved && engraved.length > MAX_NAME_LENGTH) go(back, 'error', `El nombre en la placa puede tener hasta ${MAX_NAME_LENGTH} letras.`)
 
   const supabase = await createClient()
+
+  // La silueta se dibuja con su foto: sin foto no se puede pedir.
+  const { data: pet } = await supabase.from('pets').select('id, main_photo_path').eq('id', v.pet_id).maybeSingle()
+  if (!pet) go(back, 'error', 'No encontramos a tu mascota.')
+  if (!pet.main_photo_path) go(`/pets/${v.pet_id}/edit`, 'error', 'Sube una foto de tu mascota para que podamos diseñar su placa.')
+
+  // Placa estándar: el producto activo más barato y su variante base (sin costo extra).
+  const { data: prods } = await supabase
+    .from('products')
+    .select('id, base_price, product_variants(id, color_name, price_delta, is_active)')
+    .eq('is_active', true)
+    .order('base_price')
+  const variants = ((prods ?? []) as { product_variants: Variant[] }[])
+    .flatMap((p) => p.product_variants)
+    .filter((x) => x.is_active && filamentOf(x.color_name))
+    .sort((a, b) => Number(a.price_delta) - Number(b.price_delta))
+  const variant = variants[0]
+  if (!variant) go(back, 'error', 'Por ahora no podemos tomar pedidos. Escríbenos por WhatsApp.')
+
   const { data: orderId, error } = await supabase.rpc('create_order', {
     p_pet_id: v.pet_id,
-    p_variant_id: v.variant_id,
+    p_variant_id: variant.id,
     p_engraved_name: engraved,
     p_shipping_name: v.shipping_name,
     p_shipping_phone: v.shipping_phone,
     p_shipping_address: { street: v.street, neighborhood: v.neighborhood, city: v.city, state: v.state, zip: v.zip },
+    p_letter_color: null,
+    p_zone_colors: null,
     p_customer_notes: str(fd.get('customer_notes')),
-    p_silhouette: v.silhouette,
-    p_size_code: v.size_code,
-    p_font: v.font,
-    p_letter_color: v.letter_color,
-    p_zone_colors: { z2: v.zone_2 },
   })
   if (error || !orderId) go(back, 'error', 'No pudimos crear tu pedido. Revisa los datos e intenta de nuevo.')
 
-  go(`/orders/${orderId}`, 'ok', '¡Pedido creado! Sigue las instrucciones de pago para que lo mandemos a producción.')
+  go(`/orders/${orderId}`, 'ok', '¡Pedido creado! Te mostraremos el diseño de su placa para que lo apruebes antes de imprimir.')
 }
 
 /** Crea el cobro en Mercado Pago y manda al cliente a su página de pago. */
