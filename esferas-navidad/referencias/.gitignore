@@ -2,3 +2,4 @@ originales/
 salida/
 __pycache__/
 salida_modular/
+*.zip
