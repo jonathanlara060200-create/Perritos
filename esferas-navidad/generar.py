@@ -117,54 +117,7 @@ def acomodar(n_piezas, w, h):
 
 
 # ------------------------------------------------------------------ 3MF
-def escribir_3mf(ruta, objetos):
-    """objetos: [{nombre, pos:(x,y), partes:[(nombre_parte, stl, color)]}]
-    Cada objeto se escribe como un ensamble con partes (componentes), que
-    Creality Print / Orca abren como 1 objeto con varias piezas, para
-    asignarle a cada pieza su filamento del CFS."""
-    colores = []
-    for o in objetos:
-        for _, _, c in o["partes"]:
-            if c not in colores:
-                colores.append(c)
-    xml = ['<?xml version="1.0" encoding="UTF-8"?>',
-           '<model unit="millimeter" xml:lang="es-MX" '
-           'xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">',
-           '<metadata name="Title">Ajolote de Bolsillo - esferas navidenas</metadata>',
-           '<metadata name="Designer">Ajolote de Bolsillo</metadata>',
-           '<resources>', '<basematerials id="1">']
-    xml += [f'<base name="color{i+1}" displaycolor="{c}FF"/>' for i, c in enumerate(colores)]
-    xml.append('</basematerials>')
-    nid, build = 2, []
-    for o in objetos:
-        comp_ids = []
-        for nombre_parte, stl, c in o["partes"]:
-            m = trimesh.load(stl)
-            m.merge_vertices()
-            v = "".join(f'<vertex x="{a:.4f}" y="{b:.4f}" z="{z:.4f}"/>' for a, b, z in m.vertices)
-            t = "".join(f'<triangle v1="{a}" v2="{b}" v3="{d}"/>' for a, b, d in m.faces)
-            xml.append(f'<object id="{nid}" type="model" name="{nombre_parte}" pid="1" '
-                       f'pindex="{colores.index(c)}"><mesh><vertices>{v}</vertices>'
-                       f'<triangles>{t}</triangles></mesh></object>')
-            comp_ids.append(nid)
-            nid += 1
-        xml.append(f'<object id="{nid}" type="model" name="{o["nombre"]}"><components>'
-                   + "".join(f'<component objectid="{i}"/>' for i in comp_ids)
-                   + '</components></object>')
-        build.append(f'<item objectid="{nid}" transform="1 0 0 0 1 0 0 0 1 '
-                     f'{o["pos"][0]:.3f} {o["pos"][1]:.3f} 0"/>')
-        nid += 1
-    xml += ['</resources>', '<build>'] + build + ['</build>', '</model>']
-    with zipfile.ZipFile(ruta, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("[Content_Types].xml",
-                   '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
-                   '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
-                   '<Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>')
-        z.writestr("_rels/.rels",
-                   '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-                   '<Relationship Target="/3D/3dmodel.model" Id="rel0" '
-                   'Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>')
-        z.writestr("3D/3dmodel.model", "".join(xml))
+from tres_mf import escribir_3mf  # formato Bambu/Orca: Creality Print respeta el color de cada pieza
 
 
 # ------------------------------------------------------------------ vistas previas
