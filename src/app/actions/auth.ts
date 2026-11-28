@@ -21,6 +21,8 @@ export async function signIn(fd: FormData) {
   if (next === '/dashboard') {
     const { data: staff } = await supabase.rpc('is_clicker_staff')
     if (staff === true) redirect('/clickers')
+    const { data: calc } = await supabase.rpc('is_calc_staff')
+    if (calc === true) redirect('/calculadora')
   }
   redirect(next)
 }

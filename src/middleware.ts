@@ -14,6 +14,7 @@ export const config = {
     '/lost/:path*',
     '/admin/:path*',
     '/clickers/:path*',
+    '/calculadora/:path*',
     '/hidratacion/:path*',
     '/login',
     '/register',

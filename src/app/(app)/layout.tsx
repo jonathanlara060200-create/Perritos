@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { signOut } from '@/app/actions/auth'
 import { Logo } from '@/components/Logo'
-import { getClickerAccess, getProfile, requireUser } from '@/lib/auth'
+import { getCalcAccess, getClickerAccess, getProfile, requireUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
 const NAV = [
@@ -15,6 +15,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await requireUser()
   const profile = await getProfile()
   const clickers = (await getClickerAccess()) === 'staff'
+  const calc = (await getCalcAccess()) === 'staff'
+  const extras = (profile?.role === 'admin' ? 1 : 0) + (clickers ? 1 : 0) + (calc ? 1 : 0)
+  const cols = ['grid-cols-4', 'grid-cols-5', 'grid-cols-6', 'grid-cols-7'][extras]
   const supabase = await createClient()
   const { count } = await supabase
     .from('notifications')
@@ -39,6 +42,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             {clickers && (
               <Link href="/clickers" className="rounded-xl bg-butter px-3 py-2 text-sm font-bold">Clickers</Link>
             )}
+            {calc && (
+              <Link href="/calculadora" className="rounded-xl bg-butter px-3 py-2 text-sm font-bold">Calculadora</Link>
+            )}
           </nav>
           <div className="flex items-center gap-2">
             {!!count && <span className="chip" title="Notificaciones sin leer">🔔 {count}</span>}
@@ -52,7 +58,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <main className="mx-auto max-w-4xl px-4 py-6">{children}</main>
 
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-axo-100 bg-white md:hidden" aria-label="Navegación principal">
-        <div className={`mx-auto grid max-w-md ${profile?.role === 'admin' || clickers ? 'grid-cols-5' : 'grid-cols-4'}`}>
+        <div className={`mx-auto grid max-w-md ${cols}`}>
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} className="flex flex-col items-center gap-0.5 py-2.5 text-xs font-bold">
               <span className="text-xl">{n.icon}</span>
@@ -69,6 +75,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Link href="/clickers" className="flex flex-col items-center gap-0.5 bg-butter/60 py-2.5 text-xs font-bold">
               <span className="text-xl">🎛️</span>
               Clickers
+            </Link>
+          )}
+          {calc && (
+            <Link href="/calculadora" className="flex flex-col items-center gap-0.5 bg-butter/60 py-2.5 text-xs font-bold">
+              <span className="text-xl">🧮</span>
+              Calculadora
             </Link>
           )}
         </div>

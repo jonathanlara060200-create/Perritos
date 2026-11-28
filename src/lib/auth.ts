@@ -41,6 +41,24 @@ export const getClickerAccess = cache(async (): Promise<'admin' | 'staff' | null
   return data === true ? 'staff' : null
 })
 
+/** Quién puede usar la calculadora 3D: el admin o el equipo de la calculadora (solo la calculadora). */
+export const getCalcAccess = cache(async (): Promise<'admin' | 'staff' | null> => {
+  const profile = await getProfile()
+  if (!profile) return null
+  if (profile.role === 'admin') return 'admin'
+  const supabase = await createClient()
+  const { data } = await supabase.rpc('is_calc_staff')
+  return data === true ? 'staff' : null
+})
+
+export async function requireCalcAccess() {
+  const profile = await getProfile()
+  if (!profile) redirect('/login?next=/calculadora')
+  const access = await getCalcAccess()
+  if (!access) redirect('/dashboard')
+  return access
+}
+
 export async function requireClickerAccess() {
   const profile = await getProfile()
   if (!profile) redirect('/login?next=/clickers')
