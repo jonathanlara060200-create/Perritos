@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { CalcCatalogList, CalcSaveForm } from '@/components/CalcCatalog'
 import { CopyButton } from '@/components/CopyButton'
-import { DEFAULTS, JOB0, calculate, num, type Job, type Settings } from '@/lib/print-pricing'
+import { DEFAULTS, JOB0, calculate, num, type CalcProduct, type Job, type Settings } from '@/lib/print-pricing'
 
 const STORAGE_KEY = 'toeva-calc-3d-v1'
 
@@ -31,10 +32,22 @@ function Field({
   )
 }
 
-export function PrintCalculator() {
+export function PrintCalculator({ products = [], canDelete = false }: { products?: CalcProduct[]; canDelete?: boolean }) {
   const [s, setS] = useState<Settings>(DEFAULTS)
   const [job, setJob] = useState<Job>(JOB0)
   const [loaded, setLoaded] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const editing = products.find((p) => p.id === editingId) ?? null
+
+  const loadProduct = (p: CalcProduct) => {
+    setJob({ ...JOB0, ...p.job })
+    setEditingId(p.id)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  const newProduct = () => {
+    setEditingId(null)
+    setJob((cur) => ({ ...JOB0, margin: cur.margin }))
+  }
 
   // Cargar costos guardados (si el navegador lo permite).
   useEffect(() => {
@@ -77,6 +90,14 @@ export function PrintCalculator() {
       : '')
 
   return (
+    <div className="space-y-5">
+    <CalcCatalogList
+      products={products}
+      canDelete={canDelete}
+      editingId={editingId}
+      onLoad={loadProduct}
+      priceNow={(p) => calculate(s, p.job).pricePer}
+    />
     <div className="grid gap-5 lg:grid-cols-2">
       <div className="space-y-5">
         <section className="card space-y-4">
@@ -100,6 +121,15 @@ export function PrintCalculator() {
             <Field label="Ganancia sobre el costo (%)" value={job.margin} onChange={setJ('margin')} hint="100% = cobras el doble del costo." />
           </div>
         </section>
+
+        <CalcSaveForm
+          key={editing?.id ?? 'new'}
+          job={job}
+          suggested={r.pricePer}
+          editing={editing}
+          onSaved={(id) => setEditingId(id)}
+          onNew={newProduct}
+        />
 
         <details className="card">
           <summary className="cursor-pointer text-xl font-extrabold">⚙️ Mis costos base</summary>
@@ -195,6 +225,7 @@ export function PrintCalculator() {
           </div>
         </section>
       </div>
+    </div>
     </div>
   )
 }

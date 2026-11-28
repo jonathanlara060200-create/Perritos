@@ -50,6 +50,32 @@ export const JOB0: Job = {
   margin: '100',
 }
 
+/** Tus filamentos disponibles (máx. 4 por impresión). */
+export const FILAMENTS: { name: string; hex: string }[] = [
+  { name: 'Rosa bajito', hex: '#F6C6D0' },
+  { name: 'Azul cielo', hex: '#9FD3F0' },
+  { name: 'Morado', hex: '#B9A3E3' },
+  { name: 'Amarillo pastel', hex: '#F8E58C' },
+  { name: 'Negro', hex: '#1F1F1F' },
+  { name: 'Blanco', hex: '#FFFFFF' },
+  { name: 'Beige', hex: '#E8D8BE' },
+  { name: 'Gris', hex: '#9CA3AF' },
+]
+
+/** Ficha guardada en el catálogo compartido de la calculadora. */
+export type CalcProduct = {
+  id: string
+  name: string
+  photo_url: string | null
+  job: Job
+  colors: string[]
+  notes: string | null
+  final_price: number | null
+  wholesale: string | null
+  suggested_price: number | null
+  updated_at: string
+}
+
 /** Referencias comunes para fijar precio: múltiplos del costo. */
 export const STANDARDS: [number, string, string][] = [
   [1.5, 'Mínimo / mayoreo', 'Para pedidos grandes o amigos'],
